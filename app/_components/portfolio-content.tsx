@@ -157,7 +157,6 @@ export default function PortfolioContent() {
   useEffect(() => {
     return () => {
       if (appRef.current && splineScrollHandlerRef.current) {
-        // @ts-ignore removeEventListener exists on runtime app
         appRef.current.removeEventListener('scroll', splineScrollHandlerRef.current);
       }
       if (removeScrollHandlerRef.current) {
