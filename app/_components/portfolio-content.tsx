@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from "react";
-import Spline from "@splinetool/react-spline";
+import React, { useEffect, useRef, useState } from "react";
+import type { Application } from "@splinetool/runtime";
+import dynamic from "next/dynamic";
+const Spline = dynamic(() => import("@splinetool/react-spline"), { ssr: false });
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -91,29 +93,61 @@ const experience = [
 // ----
 export default function PortfolioContent() {
   const [mounted, setMounted] = useState(false);
+  const appRef = useRef<Application | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    const onResize = () => {
+      const el = containerRef.current;
+      const app = appRef.current;
+      if (!el || !app) return;
+      const { clientWidth, clientHeight } = el;
+      if (clientWidth > 0 && clientHeight > 0) {
+        app.setSize(clientWidth, clientHeight);
+      }
+    };
+    window.addEventListener("resize", onResize, { passive: true });
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   return (
-    <div className="relative min-h-screen bg-background text-foreground selection:bg-foreground/100">
-      {/* Background Spline scene */}
-      <div className="absolute inset-0 -z-0 overflow-hidden">
+    <div className="border-0.5rem outset pink static min-h-screen bg-background text-foreground selection:bg-foreground/100 ">
+      {/* Background Spline scene (fixed right, behind content) */}
+  <div className="fixed inset-0 z-0  border border-blue-500">
         <div className="absolute inset-0">
-          {mounted ? (
-            <Spline
-              aria-hidden
-              scene="https://prod.spline.design/bXae1i6w76cK2003/scene.splinecode"
-              className="h-full w-full"
-              style={{ width: "100%", height: "100%" }}
-              renderOnDemand={false}
-            />
-          ) : (
-            <div className="absolute inset-0 bg-muted/10 animate-pulse" />
-          )}
+          <div ref={containerRef} className="absolute top-0 bottom-0 right-0 w-1/2 z-10 border border-red-500" style={{ touchAction: 'pan-y' }}>
+            {mounted ? (
+              <Spline
+                aria-hidden
+                scene="https://prod.spline.design/bXae1i6w76cK2003/scene.splinecode"
+                className="h-full w-full"
+                onLoad={(app) => {
+                  appRef.current = app;
+                  const el = containerRef.current;
+                  if (el) {
+                    const { clientWidth, clientHeight } = el;
+                    if (clientWidth > 0 && clientHeight > 0) {
+                      app.setSize(clientWidth, clientHeight);
+                    }
+                  }
+                  // Ensure scroll events are attached to the window/document
+                  app.setGlobalEvents(true);
+                }}
+                onSplineScroll={(e) => {
+                  console.debug('Spline scroll event', e);
+                }}
+                renderOnDemand={false}
+              />
+            ) : (
+              <div className="absolute inset-0 bg-muted/10 animate-pulse" />
+            )}
+          </div>
+          <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/40 via-background/70 to-background" />
         </div>
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/40 via-background/70 to-background" />
       </div>
 
       {/* Nav */}
