@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from "react";
-import type { Application } from "@splinetool/runtime";
-import dynamic from "next/dynamic";
-const Spline = dynamic(() => import("@splinetool/react-spline"), { ssr: false });
+import { Application } from "@splinetool/runtime";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -96,6 +94,7 @@ export default function PortfolioContent() {
   const [mounted, setMounted] = useState(false);
   const appRef = useRef<Application | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // Minimal types for Spline runtime interop
   type SplineRotation = { x: number; y: number; z: number };
   type SplineNodeLike = {
@@ -119,6 +118,7 @@ export default function PortfolioContent() {
   const splineScrollHandlerRef = useRef<((e: unknown) => void) | null>(null);
   const rotateTargetRef = useRef<SplineNodeLike | null>(null);
   const removeScrollHandlerRef = useRef<(() => void) | null>(null);
+  const [splineError, setSplineError] = useState<string | null>(null);
 
   // Best-effort traversal to list object names in the Spline scene
   const collectObjectNames = (app: unknown): string[] => {
@@ -156,8 +156,9 @@ export default function PortfolioContent() {
   // Clean up Spline runtime scroll listener on unmount
   useEffect(() => {
     return () => {
-      if (appRef.current && splineScrollHandlerRef.current) {
-        appRef.current.removeEventListener('scroll', splineScrollHandlerRef.current);
+      const runtime = appRef.current as unknown as SplineAppLike | null;
+      if (runtime?.removeEventListener && splineScrollHandlerRef.current) {
+        runtime.removeEventListener('scroll', splineScrollHandlerRef.current);
       }
       if (removeScrollHandlerRef.current) {
         removeScrollHandlerRef.current();
@@ -175,9 +176,109 @@ export default function PortfolioContent() {
         app.setSize(clientWidth, clientHeight);
       }
     };
+
+    let disposed = false;
+    const setup = async () => {
+      if (!mounted) return;
+      if (!canvasRef.current || !containerRef.current) return;
+      const canvas = canvasRef.current;
+      const app = new Application(canvas);
+      appRef.current = app;
+      console.debug('[Spline] Application created');
+      const el = containerRef.current;
+      const { clientWidth, clientHeight } = el;
+      if (clientWidth > 0 && clientHeight > 0) {
+        app.setSize(clientWidth, clientHeight);
+      }
+      try {
+        console.debug('[Spline] Loading scene...');
+        await app.load('https://prod.spline.design/bXae1i6w76cK2003/scene.splinecode');
+        console.debug('[Spline] Scene loaded');
+      } catch (err) {
+        console.error('[Spline] Failed to load scene', err);
+        setSplineError('Failed to load Spline scene');
+        return;
+      }
+      app.setGlobalEvents(true);
+
+      const runtime = app as unknown as SplineAppLike;
+      if (splineScrollHandlerRef.current && runtime.removeEventListener) {
+        runtime.removeEventListener('scroll', splineScrollHandlerRef.current);
+      }
+      splineScrollHandlerRef.current = (ev: unknown) => {
+        console.debug('Spline runtime scroll', ev);
+      };
+      runtime.addEventListener?.('scroll', splineScrollHandlerRef.current);
+
+      const tryFindRotateTarget = () => {
+        const a = app as unknown as SplineAppLike;
+        if (a?.findObjectByName && ROTATE_TARGET_NAME) {
+          try {
+            const obj = a.findObjectByName(ROTATE_TARGET_NAME);
+            if (obj) return obj;
+          } catch {}
+        }
+        if (a?.findObjectByName) {
+          const candidates = ['Root', 'root', 'Scene', 'scene', 'Model', 'Group', 'Empty', 'Pivot'];
+          for (const name of candidates) {
+            try {
+              const obj = a.findObjectByName(name);
+              if (obj) return obj;
+            } catch {}
+          }
+        }
+        const children = a?.scene?.children;
+        if (Array.isArray(children)) {
+          const obj = children.find((o: SplineNodeLike) => o?.rotation);
+          if (obj) return obj;
+        }
+        return a?.scene ?? null;
+      };
+      rotateTargetRef.current = tryFindRotateTarget();
+      if (rotateTargetRef.current) {
+        console.debug('Spline rotate target:', rotateTargetRef.current?.name || rotateTargetRef.current?.id || 'unknown');
+      } else {
+        const names = collectObjectNames(app);
+        console.warn('No rotatable target found in Spline scene. Available names:', names);
+      }
+
+      const onScroll = () => {
+        const target = rotateTargetRef.current;
+        if (!target) return;
+        const doc = document.documentElement;
+        const max = Math.max(1, doc.scrollHeight - doc.clientHeight);
+        const t = Math.min(1, Math.max(0, window.scrollY / max));
+        const angle = t * Math.PI * 2;
+        const runtime2 = app as unknown as SplineAppLike;
+        if (target.rotation) {
+          try {
+            target.rotation.y = angle;
+            return;
+          } catch {}
+        }
+        if (runtime2?.setRotation && target?.id != null) {
+          try {
+            runtime2.setRotation(target.id, 0, angle, 0);
+            return;
+          } catch {}
+        }
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      removeScrollHandlerRef.current = () => window.removeEventListener('scroll', onScroll);
+    };
+
+    setup();
     window.addEventListener("resize", onResize, { passive: true });
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+    return () => {
+      disposed = true;
+      window.removeEventListener("resize", onResize);
+      if (removeScrollHandlerRef.current) removeScrollHandlerRef.current();
+      const app = appRef.current as unknown as SplineAppLike | null;
+      if (app && splineScrollHandlerRef.current && app.removeEventListener) {
+        app.removeEventListener('scroll', splineScrollHandlerRef.current);
+      }
+    };
+  }, [mounted]);
 
   return (
     <div className="static min-h-screen bg-background text-foreground selection:bg-foreground/100 ">
@@ -186,102 +287,11 @@ export default function PortfolioContent() {
         <div className="absolute inset-0">
           <div
             ref={containerRef}
-            className="absolute top-0 bottom-0 right-0 w-1/2 z-20"
+            className="absolute top-0 bottom-0 right-0 w-1/2 z-0"
             style={{ touchAction: 'pan-y' }}
           >
             {mounted ? (
-              <Spline
-                aria-hidden
-                scene="https://prod.spline.design/bXae1i6w76cK2003/scene.splinecode"
-                className="h-full w-full pointer-events-auto"
-                onLoad={(app) => {
-                  appRef.current = app;
-                  const el = containerRef.current;
-                  if (el) {
-                    const { clientWidth, clientHeight } = el;
-                    if (clientWidth > 0 && clientHeight > 0) {
-                      app.setSize(clientWidth, clientHeight);
-                    }
-                  }
-                  // Ensure scroll events are attached to the window/document
-                  app.setGlobalEvents(true);
-                  // Use Spline runtime's own scroll event
-                  const runtime = app as unknown as SplineAppLike;
-                  if (splineScrollHandlerRef.current && runtime.removeEventListener) {
-                    runtime.removeEventListener('scroll', splineScrollHandlerRef.current);
-                  }
-                  splineScrollHandlerRef.current = (ev: unknown) => {
-                    console.debug('Spline runtime scroll', ev);
-                  };
-                  runtime.addEventListener?.('scroll', splineScrollHandlerRef.current);
-
-                  // Global page scroll -> rotate Spline object
-                  // Try to find a reasonable default target to rotate
-                  const tryFindRotateTarget = () => {
-                    const a = app as unknown as SplineAppLike;
-                    // 1) Try by explicit name first
-                    if (a?.findObjectByName && ROTATE_TARGET_NAME) {
-                      try {
-                        const obj = a.findObjectByName(ROTATE_TARGET_NAME);
-                        if (obj) return obj;
-                      } catch {}
-                    }
-                    // 2) Try common names
-                    if (a?.findObjectByName) {
-                      const candidates = ['Root', 'root', 'Scene', 'scene', 'Model', 'Group', 'Empty', 'Pivot'];
-                      for (const name of candidates) {
-                        try {
-                          const obj = a.findObjectByName(name);
-                          if (obj) return obj;
-                        } catch {}
-                      }
-                    }
-                    // 3) First child with rotation
-                    const children = a?.scene?.children;
-                    if (Array.isArray(children)) {
-                      const obj = children.find((o: SplineNodeLike) => o?.rotation);
-                      if (obj) return obj;
-                    }
-                    // 4) Fallback to scene
-                    return a?.scene ?? null;
-                  };
-                  rotateTargetRef.current = tryFindRotateTarget();
-                  if (rotateTargetRef.current) {
-                    console.debug('Spline rotate target:', rotateTargetRef.current?.name || rotateTargetRef.current?.id || 'unknown');
-                  } else {
-                    const names = collectObjectNames(app);
-                    console.warn('No rotatable target found in Spline scene. Available names:', names);
-                  }
-
-                  // Attach window scroll listener (global page scroll)
-                  const onScroll = () => {
-                    const target = rotateTargetRef.current;
-                    if (!target) return;
-                    const doc = document.documentElement;
-                    const max = Math.max(1, doc.scrollHeight - doc.clientHeight);
-                    const t = Math.min(1, Math.max(0, window.scrollY / max));
-                    const angle = t * Math.PI * 2; // one full rotation over page
-                    const runtime2 = app as unknown as SplineAppLike;
-                    // Try direct property
-                    if (target.rotation) {
-                      try {
-                        target.rotation.y = angle;
-                        return;
-                      } catch {}
-                    }
-                    // Try API method if available
-                    if (runtime2?.setRotation && target?.id != null) {
-                      try {
-                        runtime2.setRotation(target.id, 0, angle, 0);
-                        return;
-                      } catch {}
-                    }
-                  };
-                  window.addEventListener('scroll', onScroll, { passive: true });
-                  removeScrollHandlerRef.current = () => window.removeEventListener('scroll', onScroll);
-                }}
-                renderOnDemand={false}
-              />
+              <canvas ref={canvasRef} className="h-full w-full pointer-events-auto" aria-hidden />
             ) : (
               <div className="absolute inset-0 bg-muted/10 animate-pulse" />
             )}
