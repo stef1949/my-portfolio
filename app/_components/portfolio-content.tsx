@@ -296,7 +296,7 @@ export default function PortfolioContent() {
               <div className="absolute inset-0 bg-muted/10 animate-pulse" />
             )}
           </div>
-          <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/40 via-background/70 to-background" />
+          <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/0 via-background/0 to-background" />
         </div>
       </div>
 
