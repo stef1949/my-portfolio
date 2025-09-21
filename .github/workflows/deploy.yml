@@ -15,8 +15,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Type check
+        run: npx tsc -p tsconfig.json --noEmit
+      - name: Lint
+        run: npm run lint
   build:
     runs-on: ubuntu-latest
+    needs: check
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,11 +41,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20.x'
           cache: 'npm'
 
+      - name: Cache Next build
+        uses: actions/cache@v4
+        with:
+          path: |
+            .next/cache
+            node_modules/.cache
+          key: next-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            next-${{ runner.os }}-
+
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --no-audit --no-fund
 
       - name: Set base path for Pages
         run: |
@@ -42,10 +69,14 @@ jobs:
             echo "Using project page base path /$REPO_NAME"
           fi
 
-      - name: Build static site
+      - name: Build static site (Next export)
         run: |
           echo "Base path: ${NEXT_PUBLIC_BASE_PATH}"
-          npm run build
+          npx next build
+          if [ ! -d out ]; then
+            echo "'out' not found after build; attempting next export"
+            npx next export || true
+          fi
 
       - name: Add 404 fallback and .nojekyll
         run: |
