@@ -96,31 +96,53 @@ export default function PortfolioContent() {
   const [mounted, setMounted] = useState(false);
   const appRef = useRef<Application | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const splineScrollHandlerRef = useRef<((e: any) => void) | null>(null);
-  const rotateTargetRef = useRef<any | null>(null);
+  // Minimal types for Spline runtime interop
+  type SplineRotation = { x: number; y: number; z: number };
+  type SplineNodeLike = {
+    id?: string | number;
+    name?: string;
+    title?: string;
+    rotation?: SplineRotation;
+    children?: SplineNodeLike[];
+    nodes?: SplineNodeLike[];
+    objects?: SplineNodeLike[];
+    items?: SplineNodeLike[];
+  };
+  type SplineAppLike = {
+    scene?: SplineNodeLike;
+    findObjectByName?: (name: string) => SplineNodeLike | null | undefined;
+    setRotation?: (id: string | number, x: number, y: number, z: number) => void;
+    addEventListener?: (type: string, listener: (ev: unknown) => void) => void;
+    removeEventListener?: (type: string, listener: (ev: unknown) => void) => void;
+  };
+
+  const splineScrollHandlerRef = useRef<((e: unknown) => void) | null>(null);
+  const rotateTargetRef = useRef<SplineNodeLike | null>(null);
   const removeScrollHandlerRef = useRef<(() => void) | null>(null);
 
   // Best-effort traversal to list object names in the Spline scene
-  const collectObjectNames = (app: any): string[] => {
-    const names: string[] = [];
-    const seen = new Set<any>();
-    const pushName = (node: any) => {
+  const collectObjectNames = (app: unknown): string[] => {
+  const names: string[] = [];
+  const seen = new Set<unknown>();
+    const pushName = (node: Partial<SplineNodeLike> | undefined | null) => {
       const n = node?.name ?? node?.title ?? node?.id;
       if (n && typeof n === 'string') names.push(n);
     };
-    const walk = (node: any, depth = 0) => {
+    const walk = (node: unknown, depth = 0) => {
       if (!node || seen.has(node) || depth > 5) return;
       seen.add(node);
-      pushName(node);
-      const kids = ([] as any[])
-        .concat(node?.children || [])
-        .concat(node?.nodes || [])
-        .concat(node?.objects || [])
-        .concat(node?.items || []);
+      const n = node as Partial<SplineNodeLike>;
+      pushName(n);
+      const kids = ([] as unknown[])
+        .concat((n.children as unknown[]) || [])
+        .concat((n.nodes as unknown[]) || [])
+        .concat((n.objects as unknown[]) || [])
+        .concat((n.items as unknown[]) || []);
       for (const k of kids) walk(k, depth + 1);
     };
     try {
-      if ((app as any)?.scene) walk((app as any).scene);
+      const a = app as SplineAppLike;
+      if (a?.scene) walk(a.scene);
       // Some runtimes keep top-level objects under app.
       walk(app);
     } catch {}
@@ -185,20 +207,19 @@ export default function PortfolioContent() {
                   // Ensure scroll events are attached to the window/document
                   app.setGlobalEvents(true);
                   // Use Spline runtime's own scroll event
-                  if (splineScrollHandlerRef.current && (app as any).removeEventListener) {
-                    // @ts-ignore remove existing if reloaded
-                    (app as any).removeEventListener('scroll', splineScrollHandlerRef.current);
+                  const runtime = app as unknown as SplineAppLike;
+                  if (splineScrollHandlerRef.current && runtime.removeEventListener) {
+                    runtime.removeEventListener('scroll', splineScrollHandlerRef.current);
                   }
-                  splineScrollHandlerRef.current = (ev: any) => {
+                  splineScrollHandlerRef.current = (ev: unknown) => {
                     console.debug('Spline runtime scroll', ev);
                   };
-                  // @ts-ignore addEventListener provided by Spline runtime
-                  (app as any).addEventListener('scroll', splineScrollHandlerRef.current);
+                  runtime.addEventListener?.('scroll', splineScrollHandlerRef.current);
 
                   // Global page scroll -> rotate Spline object
                   // Try to find a reasonable default target to rotate
                   const tryFindRotateTarget = () => {
-                    const a: any = app as any;
+                    const a = app as unknown as SplineAppLike;
                     // 1) Try by explicit name first
                     if (a?.findObjectByName && ROTATE_TARGET_NAME) {
                       try {
@@ -217,13 +238,13 @@ export default function PortfolioContent() {
                       }
                     }
                     // 3) First child with rotation
-                    const children = (a as any)?.scene?.children;
+                    const children = a?.scene?.children;
                     if (Array.isArray(children)) {
-                      const obj = children.find((o: any) => o?.rotation);
+                      const obj = children.find((o: SplineNodeLike) => o?.rotation);
                       if (obj) return obj;
                     }
                     // 4) Fallback to scene
-                    return (a as any)?.scene ?? null;
+                    return a?.scene ?? null;
                   };
                   rotateTargetRef.current = tryFindRotateTarget();
                   if (rotateTargetRef.current) {
@@ -241,7 +262,7 @@ export default function PortfolioContent() {
                     const max = Math.max(1, doc.scrollHeight - doc.clientHeight);
                     const t = Math.min(1, Math.max(0, window.scrollY / max));
                     const angle = t * Math.PI * 2; // one full rotation over page
-                    const aAny: any = app as any;
+                    const runtime2 = app as unknown as SplineAppLike;
                     // Try direct property
                     if (target.rotation) {
                       try {
@@ -250,9 +271,9 @@ export default function PortfolioContent() {
                       } catch {}
                     }
                     // Try API method if available
-                    if (aAny?.setRotation && target?.id != null) {
+                    if (runtime2?.setRotation && target?.id != null) {
                       try {
-                        aAny.setRotation(target.id, 0, angle, 0);
+                        runtime2.setRotation(target.id, 0, angle, 0);
                         return;
                       } catch {}
                     }
