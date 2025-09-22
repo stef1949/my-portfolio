@@ -34,8 +34,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/social-card.png",
-        width: 1200,
-        height: 630,
+        width: 2400,
+        height: 1260,
         alt: "Steph Ritchie portfolio preview",
       },
     ],
@@ -45,7 +45,14 @@ export const metadata: Metadata = {
     title,
     description,
     creator: "@stephieritchie",
-    images: ["/social-card.png"],
+    images: [
+      {
+        url: "/social-card.png",
+        width: 2400,
+        height: 1260,
+        alt: "Steph Ritchie portfolio preview",
+      },
+    ],
   },
 };
 
