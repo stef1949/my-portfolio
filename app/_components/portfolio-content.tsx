@@ -42,6 +42,55 @@ const Badge = ({ children }: { children: React.ReactNode }) => (
   </span>
 );
 
+const EmbedCard = ({
+  title,
+  description,
+  href,
+  meta,
+  embedUrl,
+  aspect = "aspect-video",
+}: {
+  title: string;
+  description: string;
+  href: string;
+  meta?: string;
+  embedUrl?: string;
+  aspect?: string;
+}) => (
+  <motion.div initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+    <Card className="h-full">
+      <CardHeader className="space-y-2">
+        <div className="text-xs uppercase tracking-wide text-muted-foreground">Resource</div>
+        <h3 className="text-lg font-semibold leading-snug">{title}</h3>
+        {meta && <p className="text-xs text-muted-foreground">{meta}</p>}
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">{description}</p>
+        {embedUrl && (
+          <div className={`overflow-hidden rounded-md border bg-muted/10 ${aspect}`}>
+            <iframe
+              title={title}
+              src={embedUrl}
+              loading="lazy"
+              className="h-full w-full"
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              sandbox="allow-scripts allow-same-origin allow-popups"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+        )}
+      </CardContent>
+      <CardFooter>
+        <Button asChild size="sm" className="w-full">
+          <a href={href} target="_blank" rel="noopener noreferrer">
+            Open resource
+          </a>
+        </Button>
+      </CardFooter>
+    </Card>
+  </motion.div>
+);
+
 // ----
 // Data (feel free to edit these)
 // ----
