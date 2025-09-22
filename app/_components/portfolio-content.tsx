@@ -102,6 +102,19 @@ const projects = [
     tags: ["RNA‑seq", "Batch correction", "Empirical Bayes", "SVA"],
     cta: { label: "Download dissertation (PDF)", href: "/dissertation-batch-correction.pdf" },
     icon: <GraduationCap className="w-5 h-5" />,
+    details: {
+      overview:
+        "Capstone study benchmarking ComBat, Limma, RUVSeq, SVA, and neural methods across multi-site bulk RNA-seq cohorts to recommend harmonisation best practices.",
+      bullets: [
+        "Curated GEO/TARGET datasets, harmonised metadata, and built QC dashboards",
+        "Authored modular Nextflow pipelines to execute 10+ correction strategies reproducibly",
+        "Compared kBET, iLISI, silhouette, and biological association recovery to score performance",
+        "Packaged best-practice guidance for translational genomics teams",
+      ],
+      links: [
+        { label: "Read dissertation (PDF)", href: "/dissertation-batch-correction.pdf" },
+      ],
+    },
   },
   {
     title: "BSc Dissertation • Sertraline/drSERTaa MD",
@@ -110,6 +123,19 @@ const projects = [
     tags: ["Molecular dynamics", "Sertraline", "Danio rerio", "Free energy"],
     cta: { label: "Download BSc dissertation (PDF)", href: "/dissertation-bsc-sertraline.pdf" },
     icon: <BookOpen className="w-5 h-5" />,
+    details: {
+      overview:
+        "Molecular dynamics dissertation quantifying Sertraline interactions with the zebrafish serotonin transporter to assess aquatic toxicology risk.",
+      bullets: [
+        "Ran 200 ns GROMACS trajectories with solvated complexes and progressive restraints",
+        "Measured RMSD/RMSF, hydrogen bonding, and MM/PBSA energies to characterise binding",
+        "Benchmark zebrafish transporter dynamics against human SERT references",
+        "Discussed implications for wastewater pharmacology and environmental impact",
+      ],
+      links: [
+        { label: "Read dissertation (PDF)", href: "/dissertation-bsc-sertraline.pdf" },
+      ],
+    },
   },
   {
     title: "LumiFur • ESP32‑S3 LED Visor",
@@ -118,6 +144,20 @@ const projects = [
     tags: ["ESP32‑S3", "Hub75", "SwiftUI", "BLE", "ESP‑IDF"],
     cta: { label: "View repo / site", href: "https://github.com/stef1949" },
     icon: <Cpu className="w-5 h-5" />,
+    details: {
+      overview:
+        "Wearable LED visor platform featuring an ESP32-S3 controller, Hub75 DMA renderer, and SwiftUI BLE companion apps for live animation control.",
+      bullets: [
+        "BLE 5.0 peripheral with GATT services for animation, brightness, and profile management",
+        "Engineered double-buffered Hub75 driver delivering 120 FPS with gamma correction",
+        "Built SwiftUI iOS/watchOS apps for palette editing, headset telemetry, and OTA profile sync",
+        "Published full BOM, enclosure STLs, and assembly docs for the maker community",
+      ],
+      links: [
+        { label: "Firmware repo", href: "https://github.com/stef1949/LumiFur" },
+        { label: "Companion app", href: "https://github.com/stef1949/LumiFur-App" },
+      ],
+    },
   },
   {
     title: "HarmonizeNN • Batch Correction",
@@ -133,7 +173,7 @@ const projects = [
         "CLI handles counts→CPM→log1p transforms with optional HVG selection",
         "Lambda schedules (linear, sigmoid, adaptive) balance reconstruction vs adversary",
         "Post-run PCA, boxplots, and silhouette metrics exported automatically",
-        "Ships with Dockerfile and W&B integration for reproducible tracking",
+        "Ships with W&B integration for reproducible tracking",
       ],
       links: [
         { label: "Repo", href: "https://github.com/stef1949/HarmonizeNN" },
@@ -164,6 +204,19 @@ const projects = [
     tags: ["CUDA/CuPy", "Numerical", "Visualization"],
     cta: { label: "View on GitHub", href: "https://github.com/stef1949/Electron-Orbital-Simulator" },
     icon: <FlaskConical className="w-5 h-5" />,
+    details: {
+      overview:
+        "GPU-accelerated simulator that renders electron probability densities and isosurfaces for hydrogenic orbitals in real time.",
+      bullets: [
+        "Translated Schrödinger solutions into CuPy kernels with shared-memory optimisation",
+        "Generated volumetric datasets and marched cubes to yield interactive isosurfaces",
+        "Added camera controls, colormaps, and export tooling for teaching and research",
+        "Outputs high-resolution imagery suitable for print and scientific posters",
+      ],
+      links: [
+        { label: "Simulator repo", href: "https://github.com/stef1949/Electron-Orbital-Simulator" },
+      ],
+    },
   },
   {
     title: "Richies 3D Ltd • Models & Fursuits",
@@ -172,6 +225,20 @@ const projects = [
     tags: ["FDM", "Resin", "Etsy", "CAD"],
     cta: { label: "Enquire", href: "mailto:admin@richies.uk" },
     icon: <Printer className="w-5 h-5" />,
+    details: {
+      overview:
+        "Custom fabrication producing anatomical models and fursuit components with FDM and resin workflows.",
+      bullets: [
+        "Developed parametric CAD templates for client-specific sizing and articulation",
+        "Material expertise spanning medical-grade resins, flexible TPU, and lightweight PLA blends",
+        "Post-processing services including sanding, airbrushing, and embedded electronics",
+        "Manages Etsy storefront plus private commission pipeline with QA checkpoints",
+      ],
+      links: [
+        { label: "Email enquiry", href: "mailto:admin@richies.uk" },
+        { label: "Etsy store", href: "https://www.etsy.com/uk/shop/Richies3D" },
+      ],
+    },
   },
 ];
 
