@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Application } from "@splinetool/runtime";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -42,55 +42,6 @@ const Badge = ({ children }: { children: React.ReactNode }) => (
   </span>
 );
 
-const EmbedCard = ({
-  title,
-  description,
-  href,
-  meta,
-  embedUrl,
-  aspect = "aspect-video",
-}: {
-  title: string;
-  description: string;
-  href: string;
-  meta?: string;
-  embedUrl?: string;
-  aspect?: string;
-}) => (
-  <motion.div initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-    <Card className="h-full">
-      <CardHeader className="space-y-2">
-        <div className="text-xs uppercase tracking-wide text-muted-foreground">Resource</div>
-        <h3 className="text-lg font-semibold leading-snug">{title}</h3>
-        {meta && <p className="text-xs text-muted-foreground">{meta}</p>}
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground">{description}</p>
-        {embedUrl && (
-          <div className={`overflow-hidden rounded-md border bg-muted/10 ${aspect}`}>
-            <iframe
-              title={title}
-              src={embedUrl}
-              loading="lazy"
-              className="h-full w-full"
-              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              sandbox="allow-scripts allow-same-origin allow-popups"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-        )}
-      </CardContent>
-      <CardFooter>
-        <Button asChild size="sm" className="w-full">
-          <a href={href} target="_blank" rel="noopener noreferrer">
-            Open resource
-          </a>
-        </Button>
-      </CardFooter>
-    </Card>
-  </motion.div>
-);
-
 // ----
 // Data (feel free to edit these)
 // ----
@@ -114,7 +65,7 @@ const projects = [
       ],
       links: [
         { label: "Read dissertation (PDF)", href: "/dissertation-batch-correction.pdf" },
-        { label: "Analysis repo", href: "https://github.com/stef1949/SimBu" },
+        { label: "Analysis repo", href: "https://github.com/stef1949/RNA-Seq-Batch-Correction" },
       ],
     },
   },
@@ -362,7 +313,7 @@ export default function PortfolioContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Best-effort traversal to list object names in the Spline scene
-  const collectObjectNames = (app: unknown): string[] => {
+  const collectObjectNames = useCallback((app: unknown): string[] => {
   const names: string[] = [];
   const seen = new Set<unknown>();
     const pushName = (node: Partial<SplineNodeLike> | undefined | null) => {
@@ -388,7 +339,7 @@ export default function PortfolioContent() {
       walk(app);
     } catch {}
     return Array.from(new Set(names)).filter(Boolean);
-  };
+  }, []);
 
   const activeProject = expandedProject ? projects.find((p) => p.title === expandedProject) ?? null : null;
 
@@ -479,7 +430,6 @@ export default function PortfolioContent() {
       }
     };
 
-    let disposed = false;
     const setup = async () => {
       if (!mounted) return;
       if (!canvasRef.current || !containerRef.current) return;
@@ -572,7 +522,6 @@ export default function PortfolioContent() {
     setup();
     window.addEventListener("resize", onResize, { passive: true });
     return () => {
-      disposed = true;
       window.removeEventListener("resize", onResize);
       if (removeScrollHandlerRef.current) removeScrollHandlerRef.current();
       const app = appRef.current as unknown as SplineAppLike | null;
@@ -580,7 +529,7 @@ export default function PortfolioContent() {
         app.removeEventListener('scroll', splineScrollHandlerRef.current);
       }
     };
-  }, [mounted]);
+  }, [collectObjectNames, mounted]);
 
   return (
     <LayoutGroup>
@@ -594,7 +543,14 @@ export default function PortfolioContent() {
             style={{ touchAction: 'pan-y' }}
           >
             {mounted ? (
-              <canvas ref={canvasRef} className="h-full w-full pointer-events-auto" aria-hidden />
+              <>
+                <canvas ref={canvasRef} className="h-full w-full pointer-events-auto" aria-hidden />
+                {splineError && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/90">
+                    <p className="text-sm text-muted-foreground">{splineError}</p>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="absolute inset-0 bg-muted/10 animate-pulse" />
             )}
