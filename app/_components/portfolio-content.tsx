@@ -160,6 +160,7 @@ export default function PortfolioContent() {
   const rotateTargetRef = useRef<SplineNodeLike | null>(null);
   const removeScrollHandlerRef = useRef<(() => void) | null>(null);
   const [splineError, setSplineError] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Best-effort traversal to list object names in the Spline scene
   const collectObjectNames = (app: unknown): string[] => {
@@ -357,7 +358,7 @@ export default function PortfolioContent() {
         <div className="absolute inset-0">
           <div
             ref={containerRef}
-            className="absolute top-0 bottom-0 right-0 w-1/2 z-0"
+            className="absolute top-0 bottom-0 right-0 w-full md:w-1/2 z-0"
             style={{ touchAction: 'pan-y' }}
           >
             {mounted ? (
@@ -366,7 +367,7 @@ export default function PortfolioContent() {
               <div className="absolute inset-0 bg-muted/10 animate-pulse" />
             )}
           </div>
-          <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/0 via-background/0 to-background" />
+          <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/50 md:from-background/0 via-background/80 md:via-background/0 to-background" />
         </div>
       </div>
 
@@ -377,6 +378,8 @@ export default function PortfolioContent() {
             <Rocket className="w-5 h-5" />
             <span>Stephie Ritchie</span>
           </div>
+          
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex gap-6 text-sm">
             <a className="hover:opacity-80" href="#about">About</a>
             <a className="hover:opacity-80" href="#projects">Projects</a>
@@ -384,7 +387,9 @@ export default function PortfolioContent() {
             <a className="hover:opacity-80" href="#experience">Experience</a>
             <a className="hover:opacity-80" href="#contact">Contact</a>
           </nav>
-          <div className="flex items-center gap-2">
+
+          {/* Desktop Buttons */}
+          <div className="hidden md:flex items-center gap-2">
             <Button asChild size="sm" variant="outline">
               <a href="#contact">Get in touch</a>
             </Button>
@@ -394,7 +399,68 @@ export default function PortfolioContent() {
               </a>
             </Button>
           </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2 hover:bg-accent rounded-md transition-colors"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle mobile menu"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
+
+        {/* Mobile Navigation Overlay */}
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden absolute top-full left-0 right-0 bg-background border-b shadow-lg"
+          >
+            <nav className="px-6 py-4 space-y-4">
+              <a 
+                className="block text-sm hover:opacity-80 py-2" 
+                href="#about"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                About
+              </a>
+              <a 
+                className="block text-sm hover:opacity-80 py-2" 
+                href="#projects"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Projects
+              </a>
+              <a 
+                className="block text-sm hover:opacity-80 py-2" 
+                href="#experience"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Experience
+              </a>
+              <a 
+                className="block text-sm hover:opacity-80 py-2" 
+                href="#contact"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Contact
+              </a>
+              <div className="pt-4 space-y-3 border-t">
+                <Button asChild size="sm" variant="outline" className="w-full">
+                  <a href="#contact" onClick={() => setMobileMenuOpen(false)}>Get in touch</a>
+                </Button>
+                <Button asChild size="sm" className="w-full">
+                  <a href="#cv" onClick={() => setMobileMenuOpen(false)}>
+                    <FileDown className="mr-2 h-4 w-4" />Download CV
+                  </a>
+                </Button>
+              </div>
+            </nav>
+          </motion.div>
+        )}
       </header>
 
       {/* Hero */}
@@ -405,10 +471,10 @@ export default function PortfolioContent() {
           transition={{ duration: 0.6 }}
           className="max-w-3xl"
         >
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight">
+          <h1 className="text-7xl md:text-7xl font-extrabold tracking-tight leading-tight">
             Computational biologist & maker building <span className="bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60">beautifully engineered</span> tools.
           </h1>
-          <p className="mt-4 text-lg text-muted-foreground">
+          <p className="mt-4 text-xl md:text-lg text-muted-foreground">
             MSc in Genetic Manipulation & Molecular Biosciences. I build bioinformatics pipelines, GPU‑accelerated simulations, and immersive hardware like the <em>LumiFur</em> visor system.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
