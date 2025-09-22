@@ -5,7 +5,7 @@ import { Application } from "@splinetool/runtime";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Github, Linkedin, Mail, FileDown, Cpu, FlaskConical, Brain, Printer, Rocket } from "lucide-react";
+import { Github, Linkedin, Mail, FileDown, Cpu, FlaskConical, Brain, Printer, Rocket, Menu, X } from "lucide-react";
 
 // ----
 // Simple utility components
@@ -119,6 +119,7 @@ export default function PortfolioContent() {
   const rotateTargetRef = useRef<SplineNodeLike | null>(null);
   const removeScrollHandlerRef = useRef<(() => void) | null>(null);
   const [splineError, setSplineError] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Best-effort traversal to list object names in the Spline scene
   const collectObjectNames = (app: unknown): string[] => {
@@ -307,13 +308,17 @@ export default function PortfolioContent() {
             <Rocket className="w-5 h-5" />
             <span>Stephie Ritchie</span>
           </div>
+          
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex gap-6 text-sm">
             <a className="hover:opacity-80" href="#about">About</a>
             <a className="hover:opacity-80" href="#projects">Projects</a>
             <a className="hover:opacity-80" href="#experience">Experience</a>
             <a className="hover:opacity-80" href="#contact">Contact</a>
           </nav>
-          <div className="flex items-center gap-2">
+
+          {/* Desktop Buttons */}
+          <div className="hidden md:flex items-center gap-2">
             <Button asChild size="sm" variant="outline">
               <a href="#contact">Get in touch</a>
             </Button>
@@ -321,7 +326,68 @@ export default function PortfolioContent() {
               <a href="#cv"><FileDown className="mr-2 h-4 w-4" />Download CV</a>
             </Button>
           </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2 hover:bg-accent rounded-md transition-colors"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle mobile menu"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
+
+        {/* Mobile Navigation Overlay */}
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden absolute top-full left-0 right-0 bg-background border-b shadow-lg"
+          >
+            <nav className="px-6 py-4 space-y-4">
+              <a 
+                className="block text-sm hover:opacity-80 py-2" 
+                href="#about"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                About
+              </a>
+              <a 
+                className="block text-sm hover:opacity-80 py-2" 
+                href="#projects"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Projects
+              </a>
+              <a 
+                className="block text-sm hover:opacity-80 py-2" 
+                href="#experience"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Experience
+              </a>
+              <a 
+                className="block text-sm hover:opacity-80 py-2" 
+                href="#contact"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Contact
+              </a>
+              <div className="pt-4 space-y-3 border-t">
+                <Button asChild size="sm" variant="outline" className="w-full">
+                  <a href="#contact" onClick={() => setMobileMenuOpen(false)}>Get in touch</a>
+                </Button>
+                <Button asChild size="sm" className="w-full">
+                  <a href="#cv" onClick={() => setMobileMenuOpen(false)}>
+                    <FileDown className="mr-2 h-4 w-4" />Download CV
+                  </a>
+                </Button>
+              </div>
+            </nav>
+          </motion.div>
+        )}
       </header>
 
       {/* Hero */}
