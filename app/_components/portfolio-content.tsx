@@ -288,7 +288,7 @@ export default function PortfolioContent() {
         <div className="absolute inset-0">
           <div
             ref={containerRef}
-            className="absolute top-0 bottom-0 right-0 w-1/2 z-0"
+            className="absolute top-0 bottom-0 right-0 w-full md:w-1/2 z-0"
             style={{ touchAction: 'pan-y' }}
           >
             {mounted ? (
@@ -297,7 +297,7 @@ export default function PortfolioContent() {
               <div className="absolute inset-0 bg-muted/10 animate-pulse" />
             )}
           </div>
-          <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/0 via-background/0 to-background" />
+          <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/50 md:from-background/0 via-background/80 md:via-background/0 to-background" />
         </div>
       </div>
 
@@ -398,10 +398,10 @@ export default function PortfolioContent() {
           transition={{ duration: 0.6 }}
           className="max-w-3xl"
         >
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight">
+          <h1 className="text-7xl md:text-7xl font-extrabold tracking-tight leading-tight">
             Computational biologist & maker building <span className="bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60">beautifully engineered</span> tools.
           </h1>
-          <p className="mt-4 text-lg text-muted-foreground">
+          <p className="mt-4 text-xl md:text-lg text-muted-foreground">
             MSc in Genetic Manipulation & Molecular Biosciences. I build bioinformatics pipelines, GPU‑accelerated simulations, and immersive hardware like the <em>LumiFur</em> visor system.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
