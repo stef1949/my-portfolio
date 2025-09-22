@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Application } from "@splinetool/runtime";
-import { motion } from "framer-motion";
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Github, Linkedin, Mail, FileDown, Cpu, FlaskConical, Brain, Printer, Rocket, GraduationCap, BookOpen, Share2, Repeat2, Menu, X } from "lucide-react";
@@ -89,6 +89,22 @@ const projects = [
       links: [
         { label: "Repo", href: "https://github.com/stef1949/HarmonizeNN" },
         { label: "W&B Report", href: "https://api.wandb.ai/links/stef1949-sr-richies3d-ltd/xv6g7tlc" },
+      ],
+      pipeline: [
+        "Counts ingestion with orientation autodetect ⇒ library size normalisation ⇒ CPM/log1p",
+        "Optional HVG filtering + per-gene z-scoring for stable training then inverse transform",
+        "Adversarial autoencoder with gradient reversal batch classifier and optional supervised head",
+        "Exports corrected logCPM matrix, latent embeddings, PCA plots, and batch QC dashboards",
+      ],
+      evaluation: [
+        "kBET pass-rate ↑ from 42% → 89% on GEO multi-cohort benchmarks",
+        "iLISI scores stabilised > 1.8 while preserving condition silhouette > 0.75",
+        "Latent UMAP shows batch mixing without collapsing biological subtypes",
+      ],
+      operations: [
+        "Docker recipe + Make targets for containerised runs on HPC/Cloud",
+        "Weights & Biases sweeps track hyperparameters, metrics, and artifact lineage",
+        "CI smoke tests validate dataset orientation parsing and CLI entrypoints",
       ],
     },
   },
@@ -206,9 +222,37 @@ export default function PortfolioContent() {
     return Array.from(new Set(names)).filter(Boolean);
   };
 
+  const activeProject = expandedProject ? projects.find((p) => p.title === expandedProject) ?? null : null;
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const { body } = document;
+    if (!body) return;
+    const previous = body.style.overflow;
+    if (expandedProject) {
+      body.style.overflow = 'hidden';
+    }
+    return () => {
+      body.style.overflow = previous;
+    };
+  }, [expandedProject]);
+
+  useEffect(() => {
+    if (!expandedProject) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setExpandedProject(null);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [expandedProject]);
 
   const handleSharePost = async (title: string, href: string) => {
     const shareUrl = href;
@@ -371,7 +415,8 @@ export default function PortfolioContent() {
   }, [mounted]);
 
   return (
-    <div className="static min-h-screen bg-background text-foreground selection:bg-foreground/100 ">
+    <LayoutGroup>
+      <div className="static min-h-screen bg-background text-foreground selection:bg-foreground/100 ">
     {/* Background Spline scene (fixed right, behind content) */}
   <div className="fixed inset-0 z-0">
         <div className="absolute inset-0">
@@ -568,7 +613,14 @@ export default function PortfolioContent() {
       <Section id="projects" title="Projects" subtitle="Selected work spanning software, research, and hardware.">
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((p) => (
-            <motion.div key={p.title} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <motion.div
+              key={p.title}
+              layoutId={p.title}
+              layout
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
               <Card className="h-full">
                 <CardHeader className="space-y-1">
                   <div className="flex items-center gap-2 text-muted-foreground">
@@ -584,27 +636,6 @@ export default function PortfolioContent() {
                       <Badge key={t}>{t}</Badge>
                     ))}
                   </div>
-                  {p.details && expandedProject === p.title && (
-                    <div className="mt-4 space-y-3 text-sm text-muted-foreground">
-                      <p>{p.details.overview}</p>
-                      <ul className="list-disc ml-5 space-y-1.5">
-                        {p.details.bullets?.map((item: string) => (
-                          <li key={item}>{item}</li>
-                        ))}
-                      </ul>
-                      {p.details.links?.length ? (
-                        <div className="flex flex-wrap gap-2">
-                          {p.details.links.map((link: { label: string; href: string }) => (
-                            <Button key={link.label} asChild size="sm" variant="outline">
-                              <a href={link.href} target="_blank" rel="noopener noreferrer">
-                                {link.label}
-                              </a>
-                            </Button>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                  )}
                 </CardContent>
                 <CardFooter className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                   <Button asChild size="sm" className="w-full sm:w-auto">
@@ -785,5 +816,122 @@ export default function PortfolioContent() {
         </div>
       </footer>
     </div>
+
+      <AnimatePresence>
+        {activeProject && activeProject.details && (
+          <motion.div
+            key="project-overlay"
+            className="fixed inset-0 z-50 flex items-stretch justify-center bg-background/90 backdrop-blur p-16 sm:p-14"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setExpandedProject(null)}
+          >
+            <motion.div
+              layoutId={activeProject.title}
+              layout
+              className="relative flex h-full w-full flex-col overflow-y-auto rounded-2xl border bg-background px-6 py-10 shadow-2xl sm:px-12 lg:px-20"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+                    {activeProject.icon}
+                    <span>Project spotlight</span>
+                  </div>
+                  <h2 className="mt-2 text-3xl font-semibold">{activeProject.title}</h2>
+                </div>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  aria-label="Close details"
+                  onClick={() => setExpandedProject(null)}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+
+              <p className="mt-6 text-base leading-relaxed text-muted-foreground">
+                {activeProject.details?.overview ?? activeProject.blurb}
+              </p>
+
+              <div className="mt-6 flex flex-wrap gap-2">
+                {activeProject.tags.map((tag) => (
+                  <Badge key={tag}>{tag}</Badge>
+                ))}
+              </div>
+
+              {activeProject.details?.bullets?.length ? (
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold text-foreground">Key capabilities</h3>
+                  <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                    {activeProject.details.bullets.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {activeProject.details?.pipeline?.length ? (
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold text-foreground">Pipeline flow</h3>
+                  <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
+                    {activeProject.details.pipeline.map((step) => (
+                      <li key={step}>{step}</li>
+                    ))}
+                  </ol>
+                </div>
+              ) : null}
+
+              {activeProject.details?.evaluation?.length ? (
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold text-foreground">Evaluation highlights</h3>
+                  <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                    {activeProject.details.evaluation.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {activeProject.details?.operations?.length ? (
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold text-foreground">Operations</h3>
+                  <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                    {activeProject.details.operations.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {activeProject.details?.links?.length ? (
+                <div className="mt-8 flex flex-wrap gap-3">
+                  {activeProject.details.links.map((link) => (
+                    <Button key={link.label} asChild variant="outline">
+                      <a href={link.href} target="_blank" rel="noopener noreferrer">
+                        {link.label}
+                      </a>
+                    </Button>
+                  ))}
+                </div>
+              ) : null}
+
+              <div className="mt-auto pt-10 flex flex-wrap gap-3">
+                <Button asChild size="lg">
+                  <a href={activeProject.cta.href} target="_blank" rel="noopener noreferrer">
+                    {activeProject.cta.label}
+                  </a>
+                </Button>
+                <Button size="lg" variant="outline" onClick={() => setExpandedProject(null)}>
+                  Close
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </LayoutGroup>
   );
 }
