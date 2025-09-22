@@ -37,7 +37,7 @@ const Section = ({ id, title, subtitle, children }: { id: string; title: string;
 );
 
 const Badge = ({ children }: { children: React.ReactNode }) => (
-  <span className="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground">
+  <span className="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
     {children}
   </span>
 );
@@ -104,15 +104,17 @@ const projects = [
     icon: <GraduationCap className="w-5 h-5" />,
     details: {
       overview:
-        "Capstone study benchmarking ComBat, Limma, RUVSeq, SVA, and neural methods across multi-site bulk RNA-seq cohorts to recommend harmonisation best practices.",
+        "Capstone benchmarking of empirical (ComBat/limma variants) versus surrogate-variable methods (SVA, RUV family) on simulated and TARGET bulk RNA-seq cohorts.",
       bullets: [
-        "Curated GEO/TARGET datasets, harmonised metadata, and built QC dashboards",
-        "Authored modular Nextflow pipelines to execute 10+ correction strategies reproducibly",
-        "Compared kBET, iLISI, silhouette, and biological association recovery to score performance",
-        "Packaged best-practice guidance for translational genomics teams",
+        "Built a Nextflow + R/Python workflow: raw counts → library-size normalisation → CPM/log branches plus count-native paths for ComBat-Seq/RUV",
+        "Benchmarked on Splatter-style simulations and TARGET/GEO neuroblastoma cohorts with known batch annotations",
+        "Quantified harmonisation and biology retention via PERMANOVA R², kBET rejection, Batch/Bio Silhouette, iLISI/cLISI, PCR R², and gene-level R²",
+        "Observed limma/ComBat drop PERMANOVA R² to ≈0.000–0.002 and kBET rejection to ≈1% while lifting Bio Silhouette above zero",
+        "Published a decision matrix outlining empirical-label use (limma/ComBat) versus latent-confounder strategies (SVA/SVA-Seq, RUV variants)",
       ],
       links: [
         { label: "Read dissertation (PDF)", href: "/dissertation-batch-correction.pdf" },
+        { label: "Analysis repo", href: "https://github.com/stef1949/SimBu" },
       ],
     },
   },
@@ -132,6 +134,22 @@ const projects = [
         "Benchmark zebrafish transporter dynamics against human SERT references",
         "Discussed implications for wastewater pharmacology and environmental impact",
       ],
+      pipeline: [
+        "Generated homology model via SWISS-MODEL/AlphaFold inputs (70.83% identity, QMEANDisCo 0.74)",
+        "Docked Sertraline to drSERTaa active site and parametrised ligands with CHARMM-GUI",
+        "Executed energy minimisation → NVT/NPT equilibration → 200 ns production run in GROMACS",
+        "Post-processed trajectories with GROMACS/MDAnalysis scripts for energy and conformational metrics",
+      ],
+      evaluation: [
+        "Binding free energy: -11.56 kcal/mol (drSERTaa) vs -8.9 kcal/mol (human SERT)",
+        "Ligand RMSD 1.5–2.4 Å showing less stable pose in drSERTaa vs human complex",
+        "Tracked hydrogen bond persistence across 200 ns to contextualise affinity shifts",
+      ],
+      operations: [
+        "Toolchain: SWISS-MODEL, AlphaFold references, CHARMM36 force field, CHARMM-GUI, GROMACS 2023",
+        "Simulations executed on local GPU workstation with periodic checkpoints for restartability",
+        "Results packaged with plots/notebooks documenting environmental toxicology implications",
+      ],
       links: [
         { label: "Read dissertation (PDF)", href: "/dissertation-bsc-sertraline.pdf" },
       ],
@@ -148,14 +166,22 @@ const projects = [
       overview:
         "Wearable LED visor platform featuring an ESP32-S3 controller, Hub75 DMA renderer, and SwiftUI BLE companion apps for live animation control.",
       bullets: [
-        "BLE 5.0 peripheral with GATT services for animation, brightness, and profile management",
-        "Engineered double-buffered Hub75 driver delivering 120 FPS with gamma correction",
-        "Built SwiftUI iOS/watchOS apps for palette editing, headset telemetry, and OTA profile sync",
-        "Published full BOM, enclosure STLs, and assembly docs for the maker community",
+        "20+ built-in animation presets ready to push to the visor",
+        "Powered by ESP32-S3 with Wi-Fi/Bluetooth radios and Qwiic/STEMMA expansion",
+        "BLE 5.3 support for cable-free control",
+        "SwiftUI companion app orchestrates colour, brightness, and playlists on iOS",
+        "DIY bill of materials keeps builds affordable (£35–£90 depending on microcontroller/LED choice)",
       ],
-      links: [
-        { label: "Firmware repo", href: "https://github.com/stef1949/LumiFur" },
-        { label: "Companion app", href: "https://github.com/stef1949/LumiFur-App" },
+      pipeline: [
+        "ESP32-S3 firmware (ESP-IDF) drives addressable LEDs and exposes LumiFur BLE services",
+        "iOS 14+ device discovers controller over BLE, pairs, and syncs animation sets",
+        "Webflow documentation guides hardware assembly, wiring, and flashing the controller",
+        "Spline demo and marketing site preview animation packs before deployment",
+      ],
+      operations: [
+        "Supports ESP32-S3 by default with guidance for Teensy-class alternatives",
+        "Hardware kit requires microcontroller, addressable LEDs, 5V supply, and wearable diffusion",
+        "Companion app walkthrough covers first-time setup and BLE reconnect workflows",
       ],
     },
   },
@@ -208,10 +234,25 @@ const projects = [
       overview:
         "GPU-accelerated simulator that renders electron probability densities and isosurfaces for hydrogenic orbitals in real time.",
       bullets: [
-        "Translated Schrödinger solutions into CuPy kernels with shared-memory optimisation",
-        "Generated volumetric datasets and marched cubes to yield interactive isosurfaces",
-        "Added camera controls, colormaps, and export tooling for teaching and research",
-        "Outputs high-resolution imagery suitable for print and scientific posters",
+        "Normalized hydrogenic Rnl(r) and real spherical harmonics (up to f) implemented for accurate |ψ|² sampling",
+        "Four render paths (Instanced, Points, WebGL GPU, WebGPU compute) adapt to browser/GPU capabilities",
+        "Interactive UI exposes presets, density controls, HDR toggle, depth culling, and export to PNG",
+        "Continuous integration runs npm tests on push; repo ships MIT license and security policy",
+      ],
+      pipeline: [
+        "Sampling tables precompute inverse CDFs for |R|² r² and |Y|² sinθ to drive instanced and GPU modes",
+        "WebGL path renders to RGBA32F textures consumed by point shader; WebGPU compute path generates point buffers",
+        "UI built with Web Components; orientation overlay provides smooth axes snaps",
+        "Build tooling: Vite bundler, worker-based sampler, npm scripts for dev/test",
+      ],
+      evaluation: [
+        "Requires WebGL2 with EXT_color_buffer_float; WebGPU path targets Chrome/Edge 113+",
+        "Importance sampling yields dense electron clouds without rejection sampling artefacts",
+        "Test suite exercises math utilities and sampling helpers via npm test",
+      ],
+      operations: [
+        "Release tarball in dist/ for static hosting; run `python3 -m http.server` or `npx http-server`",
+        "Contribution guidelines cover tuning point size/brightness and fallback behaviour",
       ],
       links: [
         { label: "Simulator repo", href: "https://github.com/stef1949/Electron-Orbital-Simulator" },
@@ -229,10 +270,21 @@ const projects = [
       overview:
         "Custom fabrication producing anatomical models and fursuit components with FDM and resin workflows.",
       bullets: [
-        "Developed parametric CAD templates for client-specific sizing and articulation",
-        "Material expertise spanning medical-grade resins, flexible TPU, and lightweight PLA blends",
-        "Post-processing services including sanding, airbrushing, and embedded electronics",
-        "Manages Etsy storefront plus private commission pipeline with QA checkpoints",
+        "Parametric CAD templates let clients tweak sizing, articulation, and magnet mounts",
+        "Material menu spans PLA+, PETG, TPU, and photopolymer resins for impact, flexibility, or surface quality",
+        "Finishing services cover sanding, priming, airbrushing, clear coats, and optional electronics",
+        "Order flow supports Etsy storefronts plus bespoke brief-to-delivery commissions",
+      ],
+      pipeline: [
+        "Consultation captures reference imagery/measurements and selects material + finish",
+        "CAD + slicer setup produce tuned profiles (layer heights, infill, support strategy)",
+        "FDM/resin print runs monitored with in-process checks; parts cured, washed, and inspected",
+        "Finishing, hardware install, and packaging with care sheets and spare consumables",
+      ],
+      operations: [
+        "Maintains calibrated printer fleet (FDM & resin) with maintenance logs and material profiling",
+        "QA checklist verifies tolerances, surface quality, and articulation before dispatch",
+        "Aftercare support covers repaint kits, replacement components, and maintenance advice",
       ],
       links: [
         { label: "Email enquiry", href: "mailto:admin@richies.uk" },
