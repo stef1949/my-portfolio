@@ -42,6 +42,38 @@ const Badge = ({ children }: { children: React.ReactNode }) => (
   </span>
 );
 
+const EmbedCard = ({
+  title,
+  description,
+  href,
+  meta,
+}: {
+  title: string;
+  description: string;
+  href: string;
+  meta?: string;
+}) => (
+  <motion.div initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+    <Card className="h-full">
+      <CardHeader className="space-y-2">
+        <div className="text-xs uppercase tracking-wide text-muted-foreground">Resource</div>
+        <h3 className="text-lg font-semibold leading-snug">{title}</h3>
+        {meta && <p className="text-xs text-muted-foreground">{meta}</p>}
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground min-h-[64px]">{description}</p>
+      </CardContent>
+      <CardFooter>
+        <Button asChild size="sm" className="w-full">
+          <a href={href} target="_blank" rel="noopener noreferrer">
+            View embed
+          </a>
+        </Button>
+      </CardFooter>
+    </Card>
+  </motion.div>
+);
+
 // ----
 // Data (feel free to edit these)
 // ----
@@ -154,6 +186,27 @@ const experience = [
   { role: "MSc Genetic Manipulation & Molecular Biosciences", org: "University of Sussex", time: "2024–2025" },
   { role: "BSc Biomedical Science", org: "University of Brighton", time: "2019–2023" },
   { role: "Bioinformatics & Computational Biology Projects", org: "Personal / Open‑source", time: "Ongoing" },
+];
+
+const embeds = [
+  {
+    title: "HarmonizeNN README",
+    description: "Introductory overview covering the adversarial autoencoder architecture and preprocessing pipeline.",
+    href: "https://github.com/stef1949/HarmonizeNN#readme",
+    meta: "GitHub",
+  },
+  {
+    title: "W&B Experiment Report",
+    description: "Interactive metrics dashboard comparing kBET, iLISI, and silhouette through tuning sweeps.",
+    href: "https://api.wandb.ai/links/stef1949-sr-richies3d-ltd/xv6g7tlc",
+    meta: "Weights & Biases",
+  },
+  {
+    title: "Sample Outputs",
+    description: "Corrected logCPM matrices and PCA plots demonstrating batch mixing across cohorts.",
+    href: "https://github.com/stef1949/HarmonizeNN/tree/main/artifacts/outputs",
+    meta: "Repository",
+  },
 ];
 
 // ----
@@ -447,6 +500,7 @@ export default function PortfolioContent() {
           <nav className="hidden md:flex gap-6 text-sm">
             <a className="hover:opacity-80" href="#about">About</a>
             <a className="hover:opacity-80" href="#projects">Projects</a>
+            <a className="hover:opacity-80" href="#embeds">Embeds</a>
             <a className="hover:opacity-80" href="#linkedin">LinkedIn</a>
             <a className="hover:opacity-80" href="#experience">Experience</a>
             <a className="hover:opacity-80" href="#contact">Contact</a>
@@ -497,6 +551,13 @@ export default function PortfolioContent() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Projects
+              </a>
+              <a 
+                className="block text-sm hover:opacity-80 py-2" 
+                href="#embeds"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Embeds
               </a>
               <a 
                 className="block text-sm hover:opacity-80 py-2" 
@@ -657,6 +718,19 @@ export default function PortfolioContent() {
                 </CardFooter>
               </Card>
             </motion.div>
+          ))}
+        </div>
+      </Section>
+
+      {/* Embeds */}
+      <Section
+        id="embeds"
+        title="Embeds & Reports"
+        subtitle="External dashboards and docs that pair with my HarmonizeNN work."
+      >
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {embeds.map((embed) => (
+            <EmbedCard key={embed.title} {...embed} />
           ))}
         </div>
       </Section>
