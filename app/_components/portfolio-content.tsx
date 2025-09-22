@@ -77,6 +77,20 @@ const projects = [
     tags: ["Python", "PyTorch", "RNA‑seq", "Batch effects", "Autoencoder"],
     cta: { label: "HarmonizeNN on GitHub", href: "https://github.com/stef1949/HarmonizeNN" },
     icon: <Brain className="w-5 h-5" />,
+    details: {
+      overview:
+        "Adversarial autoencoder pipeline with gradient reversal to suppress batch signal while keeping phenotype labels intact.",
+      bullets: [
+        "CLI handles counts→CPM→log1p transforms with optional HVG selection",
+        "Lambda schedules (linear, sigmoid, adaptive) balance reconstruction vs adversary",
+        "Post-run PCA, boxplots, and silhouette metrics exported automatically",
+        "Ships with Dockerfile and W&B integration for reproducible tracking",
+      ],
+      links: [
+        { label: "Repo", href: "https://github.com/stef1949/HarmonizeNN" },
+        { label: "W&B Report", href: "https://api.wandb.ai/links/stef1949-sr-richies3d-ltd/xv6g7tlc" },
+      ],
+    },
   },
   {
     title: "Electron Orbital Simulator",
@@ -136,6 +150,7 @@ export default function PortfolioContent() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [sharedPost, setSharedPost] = useState<string | null>(null);
+  const [expandedProject, setExpandedProject] = useState<string | null>(null);
   // Minimal types for Spline runtime interop
   type SplineRotation = { x: number; y: number; z: number };
   type SplineNodeLike = {
@@ -222,6 +237,10 @@ export default function PortfolioContent() {
       console.warn('Clipboard write failed, falling back to opening link', err);
     }
     window.open(shareUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const toggleProjectDetails = (title: string) => {
+    setExpandedProject((prev) => (prev === title ? null : title));
   };
 
   // Clean up Spline runtime scroll listener on unmount
@@ -565,13 +584,45 @@ export default function PortfolioContent() {
                       <Badge key={t}>{t}</Badge>
                     ))}
                   </div>
+                  {p.details && expandedProject === p.title && (
+                    <div className="mt-4 space-y-3 text-sm text-muted-foreground">
+                      <p>{p.details.overview}</p>
+                      <ul className="list-disc ml-5 space-y-1.5">
+                        {p.details.bullets?.map((item: string) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                      {p.details.links?.length ? (
+                        <div className="flex flex-wrap gap-2">
+                          {p.details.links.map((link: { label: string; href: string }) => (
+                            <Button key={link.label} asChild size="sm" variant="outline">
+                              <a href={link.href} target="_blank" rel="noopener noreferrer">
+                                {link.label}
+                              </a>
+                            </Button>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
                 </CardContent>
-                <CardFooter>
-                  <Button asChild size="sm" className="w-full">
+                <CardFooter className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  <Button asChild size="sm" className="w-full sm:w-auto">
                     <a href={p.cta.href} target="_blank" rel="noopener noreferrer">
                       {p.cta.label}
                     </a>
                   </Button>
+                  {p.details && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="w-full sm:w-auto"
+                      onClick={() => toggleProjectDetails(p.title)}
+                      aria-expanded={expandedProject === p.title}
+                    >
+                      {expandedProject === p.title ? 'Hide details' : 'Show details'}
+                    </Button>
+                  )}
                 </CardFooter>
               </Card>
             </motion.div>
