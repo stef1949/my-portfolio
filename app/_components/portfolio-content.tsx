@@ -535,7 +535,7 @@ export default function PortfolioContent() {
           transition={{ duration: 0.6 }}
           className="max-w-3xl"
         >
-          <h1 className="text-7xl md:text-7xl font-extrabold tracking-tight leading-tight">
+          <h1 className="text-4xl md:text-7xl font-extrabold tracking-tight leading-tight">
             Computational biologist & maker building <span className="bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60">beautifully engineered</span> tools.
           </h1>
           <p className="mt-4 text-xl md:text-lg text-muted-foreground">
