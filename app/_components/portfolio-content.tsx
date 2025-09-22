@@ -5,7 +5,7 @@ import { Application } from "@splinetool/runtime";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Github, Linkedin, Mail, FileDown, Cpu, FlaskConical, Brain, Printer, Rocket, Menu, X } from "lucide-react";
+import { Github, Linkedin, Mail, FileDown, Cpu, FlaskConical, Brain, Printer, Rocket, GraduationCap, BookOpen, Share2, Repeat2 } from "lucide-react";
 
 // ----
 // Simple utility components
@@ -47,6 +47,22 @@ const Badge = ({ children }: { children: React.ReactNode }) => (
 // ----
 const projects = [
   {
+    title: "MSc Dissertation • RNA‑seq Batch Correction",
+    blurb:
+      "Comparative analysis of empirical Bayes and surrogate variable approaches across multi‑cohort bulk RNA‑seq datasets with integration metrics (kBET, iLISI, silhouette).",
+    tags: ["RNA‑seq", "Batch correction", "Empirical Bayes", "SVA"],
+    cta: { label: "Download dissertation (PDF)", href: "/dissertation-batch-correction.pdf" },
+    icon: <GraduationCap className="w-5 h-5" />,
+  },
+  {
+    title: "BSc Dissertation • Sertraline/drSERTaa MD",
+    blurb:
+      "In silico molecular dynamics of Sertraline complexes with Danio rerio serotonin transporter (drSERTaa) using binding free energy and RMSD analysis to probe bioavailability risks.",
+    tags: ["Molecular dynamics", "Sertraline", "Danio rerio", "Free energy"],
+    cta: { label: "Download BSc dissertation (PDF)", href: "/dissertation-bsc-sertraline.pdf" },
+    icon: <BookOpen className="w-5 h-5" />,
+  },
+  {
     title: "LumiFur • ESP32‑S3 LED Visor",
     blurb:
       "BLE‑controlled protogen visor system (ESP‑IDF + Hub75 DMA) with iOS/watchOS companion app in SwiftUI.",
@@ -80,6 +96,30 @@ const projects = [
   },
 ];
 
+const linkedinPosts = [
+  {
+    title: "Deep dive: HarmonizeNN evaluation metrics",
+    date: "Jan 2025",
+    blurb:
+      "Thread unpacking how kBET, iLISI, and silhouette scores guided my benchmarking of bulk RNA-seq batch correction models across clinical cohorts.",
+    href: "https://www.linkedin.com/in/stefan-ritchie/recent-activity/posts/",
+  },
+  {
+    title: "Wearable prototyping tips from LumiFur",
+    date: "Nov 2024",
+    blurb:
+      "Shared lessons on iterating embedded BLE wearables, from ESP-IDF DMA pitfalls to optimizing SwiftUI companion apps for latency.",
+    href: "https://www.linkedin.com/in/stefan-ritchie/recent-activity/posts/",
+  },
+  {
+    title: "RNA-seq batch correction best practices",
+    date: "Sep 2024",
+    blurb:
+      "Key takeaways from my MSc dissertation comparing ComBat, Limma, RUVSeq, SVA, and neural methods for harmonising multi-site datasets.",
+    href: "https://www.linkedin.com/in/stefan-ritchie/recent-activity/posts/",
+  },
+];
+
 const experience = [
   { role: "MSc Genetic Manipulation & Molecular Biosciences", org: "University of Sussex", time: "2024–2025" },
   { role: "BSc Biomedical Science", org: "University of Brighton", time: "2019–2023" },
@@ -95,6 +135,7 @@ export default function PortfolioContent() {
   const appRef = useRef<Application | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [sharedPost, setSharedPost] = useState<string | null>(null);
   // Minimal types for Spline runtime interop
   type SplineRotation = { x: number; y: number; z: number };
   type SplineNodeLike = {
@@ -153,6 +194,35 @@ export default function PortfolioContent() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleSharePost = async (title: string, href: string) => {
+    const shareUrl = href;
+    try {
+      if (typeof navigator !== 'undefined' && 'share' in navigator && typeof navigator.share === 'function') {
+        await navigator.share({ title, url: shareUrl });
+        setSharedPost(title);
+        return;
+      }
+    } catch (err) {
+      // Ignore abort errors where the user cancels the share sheet
+      const aborted = (err as { name?: string } | null)?.name === 'AbortError';
+      if (!aborted) {
+        console.warn('Web Share API failed, falling back to clipboard', err);
+      } else {
+        return;
+      }
+    }
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(shareUrl);
+        setSharedPost(title);
+        return;
+      }
+    } catch (err) {
+      console.warn('Clipboard write failed, falling back to opening link', err);
+    }
+    window.open(shareUrl, '_blank', 'noopener,noreferrer');
+  };
 
   // Clean up Spline runtime scroll listener on unmount
   useEffect(() => {
@@ -313,6 +383,7 @@ export default function PortfolioContent() {
           <nav className="hidden md:flex gap-6 text-sm">
             <a className="hover:opacity-80" href="#about">About</a>
             <a className="hover:opacity-80" href="#projects">Projects</a>
+            <a className="hover:opacity-80" href="#linkedin">LinkedIn</a>
             <a className="hover:opacity-80" href="#experience">Experience</a>
             <a className="hover:opacity-80" href="#contact">Contact</a>
           </nav>
@@ -323,7 +394,9 @@ export default function PortfolioContent() {
               <a href="#contact">Get in touch</a>
             </Button>
             <Button asChild size="sm">
-              <a href="#cv"><FileDown className="mr-2 h-4 w-4" />Download CV</a>
+              <a href="/stefan-ritchie-cv.pdf" download>
+                <FileDown className="mr-2 h-4 w-4" />Download CV
+              </a>
             </Button>
           </div>
 
@@ -440,6 +513,12 @@ export default function PortfolioContent() {
               <p>
                 On the hardware side, I prototype embedded systems for wearables and interactive displays, shipping turnkey kits and custom parts via my company, <strong>Richies 3D Ltd</strong>.
               </p>
+              <p>
+                My MSc dissertation, <em>Evaluating Bulk RNASeq Batch Correction Processes</em>, benchmarks ComBat, Limma, RUVSeq, SVA, and neural approaches to deliver best‑practice guidance for harmonising clinical cohorts.
+              </p>
+              <p>
+                Earlier, my BSc dissertation carried out molecular dynamics on Sertraline binding to the zebrafish serotonin transporter, coupling binding free energy and RMSD metrics to highlight translational toxicology considerations.
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -500,6 +579,57 @@ export default function PortfolioContent() {
         </div>
       </Section>
 
+      {/* LinkedIn */}
+      <Section id="linkedin" title="LinkedIn" subtitle="Recent posts and threads from my professional feed.">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {linkedinPosts.map((post) => (
+            <motion.div key={post.title} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <Card className="h-full">
+                <CardHeader className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+                    <Linkedin className="w-4 h-4" />
+                    <span>{post.date}</span>
+                  </div>
+                  <h3 className="text-lg font-semibold leading-snug">{post.title}</h3>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground min-h-[64px]">{post.blurb}</p>
+                </CardContent>
+                <CardFooter className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
+                    <a href={post.href} target="_blank" rel="noopener noreferrer">
+                      View on LinkedIn
+                    </a>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="w-full sm:w-auto"
+                    onClick={() => handleSharePost(post.title, post.href)}
+                  >
+                    <Share2 className="mr-2 h-4 w-4" />Share
+                  </Button>
+                  <Button asChild size="sm" variant="ghost" className="w-full sm:w-auto">
+                    <a
+                      href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(post.href)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Repeat2 className="mr-2 h-4 w-4" />Repost
+                    </a>
+                  </Button>
+                  {sharedPost === post.title && (
+                    <p className="text-xs text-muted-foreground sm:basis-full">
+                      Link ready to share—paste anywhere you like.
+                    </p>
+                  )}
+                </CardFooter>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      </Section>
+
       {/* Experience */}
       <Section id="experience" title="Experience" subtitle="Education and highlights.">
         <div className="grid md:grid-cols-2 gap-6">
@@ -509,6 +639,8 @@ export default function PortfolioContent() {
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground space-y-3">
               <ul className="list-disc ml-5 space-y-2">
+                <li>Authored MSc dissertation evaluating bulk RNA‑seq batch correction (ComBat, Limma, RUVSeq, SVA) with rigorous metric scoring.</li>
+                <li>Completed BSc dissertation on Sertraline–drSERTaa molecular dynamics, quantifying binding stability and transport risk factors.</li>
                 <li>Designed RNA‑seq batch correction benchmarking across 10+ methods with rigorous metrics.</li>
                 <li>Built SwiftUI iOS/watchOS app with BLE for real‑time control of LED‑matrix visor hardware.</li>
                 <li>Productionised analysis with containers and CI, enabling reproducibility on HPC/Cloud.</li>
@@ -543,11 +675,11 @@ export default function PortfolioContent() {
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground space-y-3">
               <p>
-                Email me for opportunities, commissions, or speaking: <a className="underline" href="mailto:steph@portfolio.example">steph@portfolio.example</a>
+                Email me for opportunities, commissions, or speaking: <a className="underline" href="mailto:stef1949.sr@outlook.com">stef1949.sr@outlook.com</a>
               </p>
               <div className="flex flex-wrap gap-3 pt-2">
                 <Button asChild variant="outline">
-                  <a href="mailto:steph@portfolio.example">
+                  <a href="mailto:stef1949.sr@outlook.com">
                     <Mail className="mr-2 h-4 w-4" />Email
                   </a>
                 </Button>
@@ -557,12 +689,12 @@ export default function PortfolioContent() {
                   </a>
                 </Button>
                 <Button asChild variant="outline">
-                  <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer">
+                  <a href="https://www.linkedin.com/in/stefan-ritchie/" target="_blank" rel="noopener noreferrer">
                     <Linkedin className="mr-2 h-4 w-4" />LinkedIn
                   </a>
                 </Button>
                 <Button asChild id="cv">
-                  <a href="#">
+                  <a href="/stefan-ritchie-cv.pdf" download>
                     <FileDown className="mr-2 h-4 w-4" /> Download CV (PDF)
                   </a>
                 </Button>
