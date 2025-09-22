@@ -6,6 +6,7 @@ import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Github, Linkedin, Mail, FileDown, Cpu, FlaskConical, Brain, Printer, Rocket, GraduationCap, BookOpen, Share2, Repeat2, Menu, X } from "lucide-react";
+import LiquidGlass from "liquid-glass-react";
 
 // ----
 // Simple utility components
@@ -677,9 +678,32 @@ export default function PortfolioContent() {
             <Badge>HPC</Badge>
           </div>
           <div className="mt-8 flex gap-3">
-            <Button asChild>
-              <a href="#projects">See my work</a>
-            </Button>
+            <a
+              href="#projects"
+              className="relative inline-flex items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white no-underline"
+            >
+              <span
+                aria-hidden="true"
+                className="pointer-events-none inline-flex items-center justify-center rounded-full px-7 py-3 text-base font-semibold leading-none tracking-tight whitespace-nowrap text-black opacity-0"
+              >
+                See my work
+              </span>
+              <LiquidGlass
+                displacementScale={64}
+                blurAmount={0.1}
+                saturation={130}
+                aberrationIntensity={2}
+                elasticity={0.2}
+                cornerRadius={16}
+                padding="8px 16px"
+                className="inline-flex cursor-pointer"
+                style={{ position: "absolute", top: "50%", left: "50%" }}
+              >
+                <span className="text-base font-semibold tracking-tight leading-none text-black whitespace-nowrap">
+                  See my work
+                </span>
+              </LiquidGlass>
+            </a>
             <Button asChild variant="outline">
               <a href="#about">About me</a>
             </Button>
