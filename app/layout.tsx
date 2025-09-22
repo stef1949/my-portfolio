@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { siteConfig } from "@/lib/site-config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,47 +13,35 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://portfolio.richies.uk";
-const title = "Steph Ritchie • Computational Biologist & Maker";
-const description =
-  "Bioinformatics engineer delivering neural network batch correction, GPU visualisations, and wearable microcontrollers.";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title,
-  description,
+  metadataBase: new URL(siteConfig.url),
+  title: siteConfig.title,
+  description: siteConfig.description,
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
-    url: siteUrl,
-    siteName: "Steph Ritchie Portfolio",
-    title,
-    description,
+    url: siteConfig.url,
+    siteName: siteConfig.siteName,
+    title: siteConfig.title,
+    description: siteConfig.description,
     locale: "en_GB",
     images: [
       {
-        url: "/social-card.png",
-        width: 2400,
-        height: 1260,
-        alt: "Steph Ritchie portfolio preview",
+        url: siteConfig.ogImage.path,
+        width: siteConfig.ogImage.width,
+        height: siteConfig.ogImage.height,
+        alt: siteConfig.ogImage.alt,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title,
-    description,
-    creator: "@stephieritchie",
-    images: [
-      {
-        url: "/social-card.png",
-        width: 2400,
-        height: 1260,
-        alt: "Steph Ritchie portfolio preview",
-      },
-    ],
+    title: siteConfig.title,
+    description: siteConfig.description,
+    creator: siteConfig.authorTwitter,
+    images: [siteConfig.ogImage.path],
   },
 };
 
