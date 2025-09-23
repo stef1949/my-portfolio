@@ -5,7 +5,7 @@ export const siteConfig = {
     "Bioinformatics engineer delivering neural network batch correction, GPU visualisations, and wearable microcontrollers.",
   siteName: "Steph Ritchie Portfolio",
   authorName: "Stephie Ritchie",
-  authorTwitter: "@stephieritchie",
+  authorTwitter: "@richies3d",
   embed: {
     width: 800,
     height: 450,
