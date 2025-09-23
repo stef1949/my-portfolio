@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Application } from "@splinetool/runtime";
+import type { Application } from "@splinetool/runtime";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -281,9 +281,11 @@ const experience = [
 export default function PortfolioContent() {
   const ROTATE_TARGET_NAME = 'Globe'; // Change to your object name from Spline
   const [mounted, setMounted] = useState(false);
+  const [shouldRenderSpline, setShouldRenderSpline] = useState(false);
   const appRef = useRef<Application | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const scrollRafRef = useRef<number | null>(null);
   const [sharedPost, setSharedPost] = useState<string | null>(null);
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   // Minimal types for Spline runtime interop
@@ -304,6 +306,10 @@ export default function PortfolioContent() {
     setRotation?: (id: string | number, x: number, y: number, z: number) => void;
     addEventListener?: (type: string, listener: (ev: unknown) => void) => void;
     removeEventListener?: (type: string, listener: (ev: unknown) => void) => void;
+    setSize?: (width: number, height: number) => void;
+    setGlobalEvents?: (enabled: boolean) => void;
+    load?: (url: string) => Promise<void>;
+    dispose?: () => void;
   };
 
   const splineScrollHandlerRef = useRef<((e: unknown) => void) | null>(null);
@@ -314,8 +320,8 @@ export default function PortfolioContent() {
 
   // Best-effort traversal to list object names in the Spline scene
   const collectObjectNames = useCallback((app: unknown): string[] => {
-  const names: string[] = [];
-  const seen = new Set<unknown>();
+    const names: string[] = [];
+    const seen = new Set<unknown>();
     const pushName = (node: Partial<SplineNodeLike> | undefined | null) => {
       const n = node?.name ?? node?.title ?? node?.id;
       if (n && typeof n === 'string') names.push(n);
@@ -345,6 +351,41 @@ export default function PortfolioContent() {
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const minWidthQuery = window.matchMedia('(min-width: 768px)');
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const updateShouldRender = () => {
+      const nav = navigator as Navigator & {
+        connection?: { saveData?: boolean };
+      };
+      const prefersSaveData = Boolean(nav.connection?.saveData);
+      const nextValue =
+        minWidthQuery.matches && !reducedMotionQuery.matches && !prefersSaveData;
+      setShouldRenderSpline((prev) => (prev === nextValue ? prev : nextValue));
+    };
+
+    const addChangeListener = (mq: MediaQueryList, handler: () => void) => {
+      if (typeof mq.addEventListener === 'function') {
+        mq.addEventListener('change', handler);
+        return () => mq.removeEventListener('change', handler);
+      }
+      mq.addListener(handler);
+      return () => mq.removeListener(handler);
+    };
+
+    updateShouldRender();
+    const removeMinWidthListener = addChangeListener(minWidthQuery, updateShouldRender);
+    const removeReducedMotionListener = addChangeListener(reducedMotionQuery, updateShouldRender);
+
+    return () => {
+      removeMinWidthListener();
+      removeReducedMotionListener();
+    };
   }, []);
 
   useEffect(() => {
@@ -416,14 +457,26 @@ export default function PortfolioContent() {
       if (removeScrollHandlerRef.current) {
         removeScrollHandlerRef.current();
       }
+      if (scrollRafRef.current !== null) {
+        cancelAnimationFrame(scrollRafRef.current);
+        scrollRafRef.current = null;
+      }
+      rotateTargetRef.current = null;
+      const disposable = appRef.current as unknown as { dispose?: () => void } | null;
+      disposable?.dispose?.();
+      appRef.current = null;
     };
   }, []);
 
   useEffect(() => {
+    if (!mounted || !shouldRenderSpline) return;
+
+    let cancelled = false;
+
     const onResize = () => {
       const el = containerRef.current;
-      const app = appRef.current;
-      if (!el || !app) return;
+      const app = appRef.current as SplineAppLike | null;
+      if (!el || !app?.setSize) return;
       const { clientWidth, clientHeight } = el;
       if (clientWidth > 0 && clientHeight > 0) {
         app.setSize(clientWidth, clientHeight);
@@ -431,196 +484,243 @@ export default function PortfolioContent() {
     };
 
     const setup = async () => {
-      if (!mounted) return;
       if (!canvasRef.current || !containerRef.current) return;
-      const canvas = canvasRef.current;
-      const app = new Application(canvas);
-      appRef.current = app;
-      console.debug('[Spline] Application created');
-      const el = containerRef.current;
-      const { clientWidth, clientHeight } = el;
-      if (clientWidth > 0 && clientHeight > 0) {
-        app.setSize(clientWidth, clientHeight);
-      }
       try {
-        console.debug('[Spline] Loading scene...');
-        await app.load('https://prod.spline.design/bXae1i6w76cK2003/scene.splinecode');
-        console.debug('[Spline] Scene loaded');
-      } catch (err) {
-        console.error('[Spline] Failed to load scene', err);
-        setSplineError('Failed to load Spline scene');
-        return;
-      }
-      app.setGlobalEvents(true);
+        const { Application } = await import('@splinetool/runtime');
+        if (cancelled || !canvasRef.current) return;
 
-      const runtime = app as unknown as SplineAppLike;
-      if (splineScrollHandlerRef.current && runtime.removeEventListener) {
-        runtime.removeEventListener('scroll', splineScrollHandlerRef.current);
-      }
-      splineScrollHandlerRef.current = (ev: unknown) => {
-        console.debug('Spline runtime scroll', ev);
-      };
-      runtime.addEventListener?.('scroll', splineScrollHandlerRef.current);
-
-      const tryFindRotateTarget = () => {
-        const a = app as unknown as SplineAppLike;
-        if (a?.findObjectByName && ROTATE_TARGET_NAME) {
-          try {
-            const obj = a.findObjectByName(ROTATE_TARGET_NAME);
-            if (obj) return obj;
-          } catch {}
+        const canvas = canvasRef.current;
+        const app = new Application(canvas);
+        const disposableApp = app as unknown as { dispose?: () => void };
+        if (cancelled) {
+          disposableApp.dispose?.();
+          return;
         }
-        if (a?.findObjectByName) {
-          const candidates = ['Root', 'root', 'Scene', 'scene', 'Model', 'Group', 'Empty', 'Pivot'];
-          for (const name of candidates) {
+        appRef.current = app;
+        const el = containerRef.current;
+        const { clientWidth, clientHeight } = el;
+        if (clientWidth > 0 && clientHeight > 0) {
+          app.setSize(clientWidth, clientHeight);
+        }
+
+        try {
+          await app.load('https://prod.spline.design/bXae1i6w76cK2003/scene.splinecode');
+        } catch (err) {
+          console.error('[Spline] Failed to load scene', err);
+          setSplineError('Failed to load Spline scene');
+          disposableApp.dispose?.();
+          appRef.current = null;
+          return;
+        }
+
+        if (cancelled) {
+          disposableApp.dispose?.();
+          appRef.current = null;
+          return;
+        }
+
+        app.setGlobalEvents?.(true);
+
+        const runtime = app as unknown as SplineAppLike;
+        if (splineScrollHandlerRef.current && runtime.removeEventListener) {
+          runtime.removeEventListener('scroll', splineScrollHandlerRef.current);
+        }
+        splineScrollHandlerRef.current = null;
+
+        const tryFindRotateTarget = () => {
+          const a = app as unknown as SplineAppLike;
+          if (a?.findObjectByName && ROTATE_TARGET_NAME) {
             try {
-              const obj = a.findObjectByName(name);
+              const obj = a.findObjectByName(ROTATE_TARGET_NAME);
               if (obj) return obj;
             } catch {}
           }
-        }
-        const children = a?.scene?.children;
-        if (Array.isArray(children)) {
-          const obj = children.find((o: SplineNodeLike) => o?.rotation);
-          if (obj) return obj;
-        }
-        return a?.scene ?? null;
-      };
-      rotateTargetRef.current = tryFindRotateTarget();
-      if (rotateTargetRef.current) {
-        console.debug('Spline rotate target:', rotateTargetRef.current?.name || rotateTargetRef.current?.id || 'unknown');
-      } else {
-        const names = collectObjectNames(app);
-        console.warn('No rotatable target found in Spline scene. Available names:', names);
-      }
+          if (a?.findObjectByName) {
+            const candidates = ['Root', 'root', 'Scene', 'scene', 'Model', 'Group', 'Empty', 'Pivot'];
+            for (const name of candidates) {
+              try {
+                const obj = a.findObjectByName(name);
+                if (obj) return obj;
+              } catch {}
+            }
+          }
+          const children = a?.scene?.children;
+          if (Array.isArray(children)) {
+            const obj = children.find((o: SplineNodeLike) => o?.rotation);
+            if (obj) return obj;
+          }
+          return a?.scene ?? null;
+        };
 
-      const onScroll = () => {
-        const target = rotateTargetRef.current;
-        if (!target) return;
-        const doc = document.documentElement;
-        const max = Math.max(1, doc.scrollHeight - doc.clientHeight);
-        const t = Math.min(1, Math.max(0, window.scrollY / max));
-        const angle = t * Math.PI * 2;
-        const runtime2 = app as unknown as SplineAppLike;
-        if (target.rotation) {
-          try {
-            target.rotation.y = angle;
-            return;
-          } catch {}
+        rotateTargetRef.current = tryFindRotateTarget();
+        setSplineError(null);
+        if (cancelled) {
+          return;
         }
-        if (runtime2?.setRotation && target?.id != null) {
-          try {
-            runtime2.setRotation(target.id, 0, angle, 0);
-            return;
-          } catch {}
+        if (!rotateTargetRef.current) {
+          const names = collectObjectNames(app);
+          console.warn('No rotatable target found in Spline scene. Available names:', names);
         }
-      };
-      window.addEventListener('scroll', onScroll, { passive: true });
-      removeScrollHandlerRef.current = () => window.removeEventListener('scroll', onScroll);
+
+        let ticking = false;
+        const onScroll = () => {
+          if (ticking) return;
+          ticking = true;
+          scrollRafRef.current = window.requestAnimationFrame(() => {
+            ticking = false;
+            const target = rotateTargetRef.current;
+            if (!target) return;
+            const doc = document.documentElement;
+            const max = Math.max(1, doc.scrollHeight - doc.clientHeight);
+            const t = Math.min(1, Math.max(0, window.scrollY / max));
+            const angle = t * Math.PI * 2;
+            const runtimeLike = app as unknown as SplineAppLike;
+            if (target.rotation) {
+              try {
+                target.rotation.y = angle;
+                return;
+              } catch {}
+            }
+            if (runtimeLike?.setRotation && target?.id != null) {
+              try {
+                runtimeLike.setRotation(target.id, 0, angle, 0);
+              } catch {}
+            }
+          });
+        };
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        removeScrollHandlerRef.current = () => {
+          window.removeEventListener('scroll', onScroll);
+          if (scrollRafRef.current !== null) {
+            cancelAnimationFrame(scrollRafRef.current);
+            scrollRafRef.current = null;
+          }
+        };
+      } catch (err) {
+        console.error('[Spline] Runtime failed to initialise', err);
+        setSplineError('Spline is unavailable in this browser');
+      }
     };
 
     setup();
-    window.addEventListener("resize", onResize, { passive: true });
+    window.addEventListener('resize', onResize, { passive: true });
+
     return () => {
-      window.removeEventListener("resize", onResize);
-      if (removeScrollHandlerRef.current) removeScrollHandlerRef.current();
-      const app = appRef.current as unknown as SplineAppLike | null;
-      if (app && splineScrollHandlerRef.current && app.removeEventListener) {
-        app.removeEventListener('scroll', splineScrollHandlerRef.current);
+      cancelled = true;
+      window.removeEventListener('resize', onResize);
+      if (removeScrollHandlerRef.current) {
+        removeScrollHandlerRef.current();
+        removeScrollHandlerRef.current = null;
       }
+      const runtime = appRef.current as unknown as SplineAppLike | null;
+      if (runtime?.removeEventListener && splineScrollHandlerRef.current) {
+        runtime.removeEventListener('scroll', splineScrollHandlerRef.current);
+      }
+      splineScrollHandlerRef.current = null;
+      if (scrollRafRef.current !== null) {
+        cancelAnimationFrame(scrollRafRef.current);
+        scrollRafRef.current = null;
+      }
+      rotateTargetRef.current = null;
+      const disposable = appRef.current as unknown as { dispose?: () => void } | null;
+      disposable?.dispose?.();
+      appRef.current = null;
     };
-  }, [collectObjectNames, mounted]);
+  }, [collectObjectNames, mounted, shouldRenderSpline]);
 
   return (
     <LayoutGroup>
       <div className="static min-h-screen bg-background text-foreground selection:bg-foreground/100 ">
-    {/* Background Spline scene (fixed right, behind content) */}
-  <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0">
-          <div
-            ref={containerRef}
-            className="absolute top-0 bottom-0 right-0 w-full md:w-1/2 z-0 touch-pan-y"
-          >
-            {mounted ? (
-              <>
-                <canvas ref={canvasRef} className="h-full w-full pointer-events-auto" aria-hidden />
-                {splineError && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/90">
-                    <p className="text-sm text-muted-foreground">{splineError}</p>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="absolute inset-0 bg-muted/10 animate-pulse" />
-            )}
+        {/* Background Spline scene (fixed right, behind content) */}
+        <div className="fixed inset-0 z-0">
+          <div className="absolute inset-0">
+            <div
+              ref={containerRef}
+              className="absolute top-0 bottom-0 right-0 w-full md:w-1/2 z-0 touch-pan-y"
+            >
+              {!mounted ? (
+                <div className="absolute inset-0 bg-muted/10 animate-pulse" />
+              ) : shouldRenderSpline ? (
+                <>
+                  <canvas ref={canvasRef} className="h-full w-full pointer-events-auto" aria-hidden />
+                  {splineError && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/90">
+                      <p className="text-sm text-muted-foreground">{splineError}</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-b from-muted/10 via-background to-background" aria-hidden />
+              )}
+            </div>
+            <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/50 md:from-background/0 via-background/80 md:via-background/0 to-background" />
           </div>
-          <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/50 md:from-background/0 via-background/80 md:via-background/0 to-background" />
-        </div>
-      </div>
-
-      {/* Nav */}
-      <header className="sticky top-0 z-20 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-b">
-        <div className="mx-auto max-w-6xl flex items-center justify-between px-6 sm:px-8 h-14">
-          <div className="flex items-center gap-2 font-semibold tracking-tight">
-            <Rocket className="w-5 h-5" />
-            <span>Stephie Ritchie</span>
-          </div>
-          
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex gap-6 text-sm">
-            <a className="hover:opacity-80" href="#about">About</a>
-            <a className="hover:opacity-80" href="#projects">Projects</a>
-            <a className="hover:opacity-80" href="#linkedin">LinkedIn</a>
-            <a className="hover:opacity-80" href="#experience">Experience</a>
-            <a className="hover:opacity-80" href="#contact">Contact</a>
-          </nav>
-
-          {/* Desktop Buttons */}
-          <div className="hidden md:flex items-center gap-2">
-            <Button asChild size="sm" variant="outline">
-              <a href="#contact">Get in touch</a>
-            </Button>
-            <Button asChild size="sm">
-              <a href="/stefan-ritchie-cv.pdf" download>
-                <FileDown className="mr-2 h-4 w-4" />Download CV
-              </a>
-            </Button>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 hover:bg-accent rounded-md transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle mobile menu"
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
         </div>
 
-        {/* Mobile Navigation Overlay */}
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="md:hidden absolute top-full left-0 right-0 bg-background border-b shadow-lg"
-          >
-            <nav className="px-6 py-4 space-y-4">
-              <a 
-                className="block text-sm hover:opacity-80 py-2" 
-                href="#about"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                About
-              </a>
-              <a 
-                className="block text-sm hover:opacity-80 py-2" 
-                href="#projects"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Projects
-              </a>
+        {/* Nav */}
+        <header className="sticky top-0 z-20 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-b">
+          <div className="mx-auto max-w-6xl flex items-center justify-between px-6 sm:px-8 h-14">
+            <div className="flex items-center gap-2 font-semibold tracking-tight">
+              <Rocket className="w-5 h-5" />
+              <span>Stephie Ritchie</span>
+            </div>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex gap-6 text-sm">
+              <a className="hover:opacity-80" href="#about">About</a>
+              <a className="hover:opacity-80" href="#projects">Projects</a>
+              <a className="hover:opacity-80" href="#linkedin">LinkedIn</a>
+              <a className="hover:opacity-80" href="#experience">Experience</a>
+              <a className="hover:opacity-80" href="#contact">Contact</a>
+            </nav>
+
+            {/* Desktop Buttons */}
+            <div className="hidden md:flex items-center gap-2">
+              <Button asChild size="sm" variant="outline">
+                <a href="#contact">Get in touch</a>
+              </Button>
+              <Button asChild size="sm">
+                <a href="/stefan-ritchie-cv.pdf" download>
+                  <FileDown className="mr-2 h-4 w-4" />Download CV
+                </a>
+              </Button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden p-2 hover:bg-accent rounded-md transition-colors"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle mobile menu"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
+
+          {/* Mobile Navigation Overlay */}
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden absolute top-full left-0 right-0 bg-background border-b shadow-lg"
+            >
+              <nav className="px-6 py-4 space-y-4">
+                <a
+                  className="block text-sm hover:opacity-80 py-2"
+                  href="#about"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  About
+                </a>
+                <a
+                  className="block text-sm hover:opacity-80 py-2"
+                  href="#projects"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Projects
+                </a>
               <a 
                 className="block text-sm hover:opacity-80 py-2" 
                 href="#experience"
