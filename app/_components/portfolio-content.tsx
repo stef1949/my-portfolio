@@ -631,7 +631,7 @@ export default function PortfolioContent() {
 
   return (
     <LayoutGroup>
-      <div className="static min-h-screen bg-background text-foreground selection:bg-foreground/100 ">
+      <div className="static min-h-screen bg-background text-foreground selection:bg-foreground ">
         {/* Background Spline scene (fixed right, behind content) */}
         <div className="fixed inset-0 z-0">
           <div className="absolute inset-0">
@@ -651,15 +651,15 @@ export default function PortfolioContent() {
                   )}
                 </>
               ) : (
-                <div className="absolute inset-0 bg-gradient-to-b from-muted/10 via-background to-background" aria-hidden />
+                <div className="absolute inset-0 bg-linear-to-b from-muted/10 via-background to-background" aria-hidden />
               )}
             </div>
-            <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-background/50 md:from-background/0 via-background/80 md:via-background/0 to-background" />
+            <div className="absolute inset-0 z-0 pointer-events-none bg-linear-to-b from-background/50 md:from-background/0 via-background/80 md:via-background/0 to-background" />
           </div>
         </div>
 
         {/* Nav */}
-        <header className="sticky top-0 z-20 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-b">
+        <header className="sticky top-0 z-20 backdrop-blur supports-backdrop-filter:bg-background/70 border-b">
           <div className="mx-auto max-w-6xl flex items-center justify-between px-6 sm:px-8 h-14">
             <div className="flex items-center gap-2 font-semibold tracking-tight">
               <Rocket className="w-5 h-5" />
@@ -759,7 +759,7 @@ export default function PortfolioContent() {
           className="max-w-3xl"
         >
           <h1 className="text-4xl md:text-7xl font-extrabold tracking-tight leading-tight">
-            Computational biologist & maker building <span className="bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60">beautifully engineered</span> tools.
+            Computational biologist & maker building <span className="bg-clip-text text-transparent bg-linear-to-r from-foreground to-foreground/60">beautifully engineered</span> tools.
           </h1>
           <p className="mt-4 text-xl md:text-lg text-muted-foreground">
             MSc in Genetic Manipulation & Molecular Biosciences. I build bioinformatics pipelines, GPU‑accelerated simulations, and immersive hardware like the <em>LumiFur</em> visor system.
