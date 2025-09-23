@@ -1,5 +1,5 @@
 export const siteConfig = {
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://portfolio.richies.uk",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://stef1949.github.io/my-portfolio/",
   title: "Steph Ritchie • Computational Biologist & Maker",
   description:
     "Bioinformatics engineer delivering neural network batch correction, GPU visualisations, and wearable microcontrollers.",
