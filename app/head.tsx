@@ -1,11 +1,13 @@
 import { siteConfig } from "@/lib/site-config";
 
+const getOEmbedUrl = (format: "json" | "xml") =>
+  new URL(`/api/oembed?format=${format}`, siteConfig.url).toString();
+
 export default function Head() {
-  const oembedUrl = `${siteConfig.url.replace(/\/$/, "")}/api/oembed?format=json`;
   return (
     <>
-      <link rel="alternate" type="application/json+oembed" href={oembedUrl} />
-      <link rel="alternate" type="text/xml+oembed" href={`${oembedUrl}`.replace("format=json", "format=xml")} />
+      <link rel="alternate" type="application/json+oembed" href={getOEmbedUrl("json")} />
+      <link rel="alternate" type="text/xml+oembed" href={getOEmbedUrl("xml")} />
     </>
   );
 }

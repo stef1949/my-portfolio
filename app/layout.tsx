@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   description: siteConfig.description,
   alternates: {
     canonical: "/",
+    types: {
+      "application/json+oembed": "/api/oembed",
+    },
   },
   openGraph: {
     type: "website",

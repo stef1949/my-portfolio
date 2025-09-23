@@ -539,8 +539,7 @@ export default function PortfolioContent() {
         <div className="absolute inset-0">
           <div
             ref={containerRef}
-            className="absolute top-0 bottom-0 right-0 w-full md:w-1/2 z-0"
-            style={{ touchAction: 'pan-y' }}
+            className="absolute top-0 bottom-0 right-0 w-full md:w-1/2 z-0 touch-pan-y"
           >
             {mounted ? (
               <>
