@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
 import { Moon, Sun } from "lucide-react";
-import { useMemo, type ComponentProps } from "react";
+import { useEffect, useMemo, useState, type ComponentProps } from "react";
 
 type ThemeToggleProps = {
   className?: string;
@@ -19,18 +19,23 @@ export function ThemeToggle({
   showLabel = false,
 }: ThemeToggleProps) {
   const { theme, toggleTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  const label = useMemo(
-    () => (theme === "dark" ? "Switch to light mode" : "Switch to dark mode"),
-    [theme],
-  );
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const labelWithState = useMemo(
-    () => (theme === "dark" ? "Light mode" : "Dark mode"),
-    [theme],
-  );
+  const label = useMemo(() => {
+    if (!mounted) return "Toggle theme";
+    return theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+  }, [mounted, theme]);
 
-  const Icon = theme === "dark" ? Sun : Moon;
+  const labelWithState = useMemo(() => {
+    if (!mounted) return "Toggle theme";
+    return theme === "dark" ? "Light mode" : "Dark mode";
+  }, [mounted, theme]);
+
+  const Icon = mounted && theme === "dark" ? Sun : Moon;
 
   return (
     <Button
