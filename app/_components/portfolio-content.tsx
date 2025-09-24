@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Github, Linkedin, Mail, FileDown, Cpu, FlaskConical, Brain, Printer, Rocket, GraduationCap, BookOpen, Share2, Repeat2, Menu, X } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
-import { fallbackLinkedInPosts, type LinkedInPost } from "@/lib/linkedin-posts";
+import type { LinkedInPost } from "@/lib/linkedin-posts";
 
 // ----
 // Simple utility components
@@ -256,12 +256,15 @@ const experience = [
 // ----
 // Main Component
 // ----
-export default function PortfolioContent() {
+type PortfolioContentProps = {
+  linkedinPosts: LinkedInPost[];
+  linkedinMessage?: string | null;
+};
+
+export default function PortfolioContent({ linkedinPosts, linkedinMessage = null }: PortfolioContentProps) {
   const ROTATE_TARGET_NAME = 'Globe'; // Change to your object name from Spline
   const [mounted, setMounted] = useState(false);
   const [shouldRenderSpline, setShouldRenderSpline] = useState(false);
-  const [linkedinPosts, setLinkedinPosts] = useState<LinkedInPost[]>(fallbackLinkedInPosts);
-  const [linkedinError, setLinkedinError] = useState<string | null>(null);
   const appRef = useRef<Application | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -331,45 +334,6 @@ export default function PortfolioContent() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadLinkedInPosts = async () => {
-      try {
-        const response = await fetch('/api/linkedin');
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
-        }
-        const payload: { posts?: LinkedInPost[]; source?: string; remoteConfigured?: boolean } = await response.json();
-        if (cancelled) return;
-
-        if (Array.isArray(payload.posts) && payload.posts.length) {
-          setLinkedinPosts(payload.posts);
-          if (payload.source === 'remote' || !payload.remoteConfigured) {
-            setLinkedinError(null);
-          } else {
-            setLinkedinError('Showing cached LinkedIn posts while LinkedIn is unreachable.');
-          }
-        } else {
-          if (payload.remoteConfigured) {
-            setLinkedinError('LinkedIn did not return any posts.');
-          }
-        }
-      } catch (error) {
-        console.error('[LinkedIn] Unable to refresh posts', error);
-        if (!cancelled) {
-          setLinkedinError('LinkedIn posts are currently unavailable.');
-        }
-      }
-    };
-
-    loadLinkedInPosts();
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   useEffect(() => {
@@ -897,12 +861,19 @@ export default function PortfolioContent() {
 
       {/* LinkedIn */}
       <Section id="linkedin" title="LinkedIn" subtitle="Recent posts and threads from my professional feed.">
-        {linkedinError && (
+        {linkedinMessage && (
           <p className="mb-3 text-sm text-destructive/80 dark:text-destructive/90">
-            {linkedinError}
+            {linkedinMessage}
           </p>
         )}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {linkedinPosts.length === 0 && (
+            <Card className="sm:col-span-2 lg:col-span-3">
+              <CardContent className="py-6 text-sm text-muted-foreground">
+                No LinkedIn posts are published yet—check back soon.
+              </CardContent>
+            </Card>
+          )}
           {linkedinPosts.map((post) => {
             const postHref = post.href || 'https://www.linkedin.com/in/stefan-ritchie/';
             return (
