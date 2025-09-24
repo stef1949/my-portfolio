@@ -70,10 +70,10 @@ jobs:
           fi
 
       - name: Configure env for LinkedIn feed
+        env:
+          LINKEDIN_POSTS_ENDPOINT: ${{ secrets.LINKEDIN_POSTS_ENDPOINT }}
         run: |
-          cat <<'EOF' >> .env.local
-          LINKEDIN_POSTS_ENDPOINT=${{ secrets.LINKEDIN_POSTS_ENDPOINT }}
-          EOF
+          echo "LINKEDIN_POSTS_ENDPOINT=${LINKEDIN_POSTS_ENDPOINT}" >> .env.local
           
       - name: Build static site (Next export)
         run: |
