@@ -627,106 +627,117 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
         </div>
 
         {/* Nav */}
-        <header className="sticky top-0 z-20 backdrop-blur supports-backdrop-filter:bg-background/70 border-b">
-          <div className="mx-auto max-w-6xl flex items-center justify-between px-6 sm:px-8 h-14">
-            <div className="flex items-center gap-2 font-semibold tracking-tight">
-              <Rocket className="w-5 h-5" />
-              <span>Stephie Ritchie</span>
-            </div>
+        <header className="fixed top-6 left-0 right-0 z-30 px-4 sm:px-6 flex justify-center pointer-events-none">
+          <div className="relative w-full max-w-5xl pointer-events-auto">
+            <div className="flex items-center justify-between gap-4 rounded-full border bg-background/80 px-4 sm:px-6 py-2.5 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/60">
+              <div className="flex items-center gap-2 font-semibold tracking-tight">
+                <Rocket className="w-5 h-5" />
+                <span>Stephie Ritchie</span>
+              </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex gap-6 text-sm">
-              <a className="hover:opacity-80" href="#about">About</a>
-              <a className="hover:opacity-80" href="#projects">Projects</a>
-              <a className="hover:opacity-80" href="#linkedin">LinkedIn</a>
-              <a className="hover:opacity-80" href="#experience">Experience</a>
-              <a className="hover:opacity-80" href="#contact">Contact</a>
-            </nav>
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex gap-6 text-sm">
+                <a className="hover:opacity-80" href="#about">About</a>
+                <a className="hover:opacity-80" href="#projects">Projects</a>
+                <a className="hover:opacity-80" href="#linkedin">LinkedIn</a>
+                <a className="hover:opacity-80" href="#experience">Experience</a>
+                <a className="hover:opacity-80" href="#contact">Contact</a>
+              </nav>
 
-            {/* Desktop Buttons */}
-            <div className="hidden md:flex items-center gap-2">
-              <ThemeToggle />
-              <Button asChild size="sm" variant="outline">
-                <a href="#contact">Get in touch</a>
-              </Button>
-              <Button asChild size="sm">
-                <a href="/stefan-ritchie-cv.pdf" download>
-                  <FileDown className="mr-2 h-4 w-4" />Download CV
-                </a>
-              </Button>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 hover:bg-accent rounded-md transition-colors"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle mobile menu"
-            >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          </div>
-
-          {/* Mobile Navigation Overlay */}
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="md:hidden absolute top-full left-0 right-0 bg-background border-b shadow-lg"
-            >
-              <nav className="px-6 py-4 space-y-4">
-                <a
-                  className="block text-sm hover:opacity-80 py-2"
-                  href="#about"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  About
-                </a>
-                <a
-                  className="block text-sm hover:opacity-80 py-2"
-                  href="#projects"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Projects
-                </a>
-              <a 
-                className="block text-sm hover:opacity-80 py-2" 
-                href="#experience"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Experience
-              </a>
-              <a 
-                className="block text-sm hover:opacity-80 py-2" 
-                href="#contact"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Contact
-              </a>
-              <div className="pt-4 space-y-3 border-t">
-                <Button asChild size="sm" variant="outline" className="w-full">
-                  <a href="#contact" onClick={() => setMobileMenuOpen(false)}>Get in touch</a>
+              {/* Desktop Buttons */}
+              <div className="hidden md:flex items-center gap-2">
+                <ThemeToggle />
+                <Button asChild size="sm" variant="outline">
+                  <a href="#contact">Get in touch</a>
                 </Button>
-                <Button asChild size="sm" className="w-full">
-                  <a href="#cv" onClick={() => setMobileMenuOpen(false)}>
+                <Button asChild size="sm">
+                  <a href="/stefan-ritchie-cv.pdf" download>
                     <FileDown className="mr-2 h-4 w-4" />Download CV
                   </a>
                 </Button>
-                <ThemeToggle
-                  size="sm"
-                  variant="outline"
-                  className="w-full justify-start"
-                  showLabel
-                />
               </div>
-            </nav>
-          </motion.div>
-        )}
-      </header>
+
+              {/* Mobile Menu Button */}
+              <button
+                className="md:hidden p-2 hover:bg-accent/80 rounded-md transition-colors"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Toggle mobile menu"
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            </div>
+
+            {/* Mobile Navigation Overlay */}
+            <AnimatePresence>
+              {mobileMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="md:hidden absolute left-0 right-0 top-full mt-3 rounded-3xl border bg-background/95 shadow-xl"
+                >
+                  <nav className="px-4 py-4 space-y-4">
+                    <a
+                      className="block text-sm hover:opacity-80 py-2"
+                      href="#about"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      About
+                    </a>
+                    <a
+                      className="block text-sm hover:opacity-80 py-2"
+                      href="#projects"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Projects
+                    </a>
+                    <a
+                      className="block text-sm hover:opacity-80 py-2"
+                      href="#linkedin"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      LinkedIn
+                    </a>
+                    <a
+                      className="block text-sm hover:opacity-80 py-2"
+                      href="#experience"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Experience
+                    </a>
+                    <a
+                      className="block text-sm hover:opacity-80 py-2"
+                      href="#contact"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Contact
+                    </a>
+                    <div className="pt-4 space-y-3 border-t">
+                      <Button asChild size="sm" variant="outline" className="w-full">
+                        <a href="#contact" onClick={() => setMobileMenuOpen(false)}>Get in touch</a>
+                      </Button>
+                      <Button asChild size="sm" className="w-full">
+                        <a href="/stefan-ritchie-cv.pdf" download onClick={() => setMobileMenuOpen(false)}>
+                          <FileDown className="mr-2 h-4 w-4" />Download CV
+                        </a>
+                      </Button>
+                      <ThemeToggle
+                        size="sm"
+                        variant="outline"
+                        className="w-full justify-start"
+                        showLabel
+                      />
+                    </div>
+                  </nav>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </header>
 
       {/* Hero */}
-      <section className="relative mx-auto max-w-6xl px-6 sm:px-8 min-h-screen flex items-center pt-16 pb-24">
+      <section className="relative mx-auto max-w-6xl px-6 sm:px-8 min-h-screen flex items-center pt-28 pb-24">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
