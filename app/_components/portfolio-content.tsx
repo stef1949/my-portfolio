@@ -356,36 +356,21 @@ export default function PortfolioContent() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const minWidthQuery = window.matchMedia('(min-width: 768px)');
-    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-    const updateShouldRender = () => {
-      const nav = navigator as Navigator & {
-        connection?: { saveData?: boolean };
-      };
-      const prefersSaveData = Boolean(nav.connection?.saveData);
-      const nextValue =
-        minWidthQuery.matches && !reducedMotionQuery.matches && !prefersSaveData;
-      setShouldRenderSpline((prev) => (prev === nextValue ? prev : nextValue));
-    };
-
-    const addChangeListener = (mq: MediaQueryList, handler: () => void) => {
-      if (typeof mq.addEventListener === 'function') {
-        mq.addEventListener('change', handler);
-        return () => mq.removeEventListener('change', handler);
+    const detectWebGL = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const context =
+          canvas.getContext('webgl2') ??
+          canvas.getContext('webgl') ??
+          canvas.getContext('experimental-webgl');
+        return Boolean(context && 'getParameter' in context);
+      } catch {
+        return false;
       }
-      mq.addListener(handler);
-      return () => mq.removeListener(handler);
     };
 
-    updateShouldRender();
-    const removeMinWidthListener = addChangeListener(minWidthQuery, updateShouldRender);
-    const removeReducedMotionListener = addChangeListener(reducedMotionQuery, updateShouldRender);
-
-    return () => {
-      removeMinWidthListener();
-      removeReducedMotionListener();
-    };
+    const nextValue = detectWebGL();
+    setShouldRenderSpline((prev) => (prev === nextValue ? prev : nextValue));
   }, []);
 
   useEffect(() => {
