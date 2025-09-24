@@ -73,7 +73,13 @@ jobs:
         env:
           LINKEDIN_POSTS_ENDPOINT: ${{ secrets.LINKEDIN_POSTS_ENDPOINT }}
         run: |
-          echo "LINKEDIN_POSTS_ENDPOINT=${LINKEDIN_POSTS_ENDPOINT}" >> .env.local
+          if [ -z "$LINKEDIN_POSTS_ENDPOINT" ]; then
+           echo "LINKEDIN_POSTS_ENDPOINT is missing" >&2
+           exit 1
+          fi
+          cat <<'EOF' >> .env.local
+          LINKEDIN_POSTS_ENDPOINT=${LINKEDIN_POSTS_ENDPOINT}
+          EOF
           
       - name: Build static site (Next export)
         run: |
