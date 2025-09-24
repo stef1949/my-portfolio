@@ -74,10 +74,10 @@ jobs:
           LINKEDIN_POSTS_ENDPOINT: ${{ secrets.LINKEDIN_POSTS_ENDPOINT }}
         run: |
           if [ -z "$LINKEDIN_POSTS_ENDPOINT" ]; then
-           echo "LINKEDIN_POSTS_ENDPOINT is missing" >&2
-           exit 1
+            echo "LINKEDIN_POSTS_ENDPOINT is missing" >&2
+            exit 1
           fi
-          cat <<'EOF' >> .env.local
+          cat <<EOF >> .env.local
           LINKEDIN_POSTS_ENDPOINT=${LINKEDIN_POSTS_ENDPOINT}
           EOF
           
