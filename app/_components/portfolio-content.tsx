@@ -44,6 +44,10 @@ const Badge = ({ children }: { children: React.ReactNode }) => (
   </span>
 );
 
+const basePath = (process.env.NEXT_PUBLIC_BASE_PATH ?? "").replace(/\/$/, "");
+const withBasePath = (path: string) => `${basePath}${path.startsWith("/") ? path : `/${path}`}`;
+const cvDownloadHref = withBasePath("/stefan-ritchie-cv.pdf");
+
 // ----
 // Data (feel free to edit these)
 // ----
@@ -53,7 +57,7 @@ const projects = [
     blurb:
       "Comparative analysis of empirical Bayes and surrogate variable approaches across multi‑cohort bulk RNA‑seq datasets with integration metrics (kBET, iLISI, silhouette).",
     tags: ["RNA‑seq", "Batch correction", "Empirical Bayes", "SVA"],
-    cta: { label: "Download dissertation (PDF)", href: "/dissertation-batch-correction.pdf" },
+    cta: { label: "Download dissertation (PDF)", href: withBasePath("/dissertation-batch-correction.pdf") },
     icon: <GraduationCap className="w-5 h-5" />,
     details: {
       overview:
@@ -66,7 +70,7 @@ const projects = [
         "Published a decision matrix outlining empirical-label use (limma/ComBat) versus latent-confounder strategies (SVA/SVA-Seq, RUV variants)",
       ],
       links: [
-        { label: "Read dissertation (PDF)", href: "/dissertation-batch-correction.pdf" },
+        { label: "Read dissertation (PDF)", href: withBasePath("/dissertation-batch-correction.pdf") },
         { label: "Analysis repo", href: "https://github.com/stef1949/RNA-Seq-Batch-Correction" },
       ],
     },
@@ -76,7 +80,7 @@ const projects = [
     blurb:
       "In silico molecular dynamics of Sertraline complexes with Danio rerio serotonin transporter (drSERTaa) using binding free energy and RMSD analysis to probe bioavailability risks.",
     tags: ["Molecular dynamics", "Sertraline", "Danio rerio", "Free energy"],
-    cta: { label: "Download BSc dissertation (PDF)", href: "/dissertation-bsc-sertraline.pdf" },
+    cta: { label: "Download BSc dissertation (PDF)", href: withBasePath("/dissertation-bsc-sertraline.pdf") },
     icon: <BookOpen className="w-5 h-5" />,
     details: {
       overview:
@@ -104,7 +108,7 @@ const projects = [
         "Results packaged with plots/notebooks documenting environmental toxicology implications",
       ],
       links: [
-        { label: "Read dissertation (PDF)", href: "/dissertation-bsc-sertraline.pdf" },
+        { label: "Read dissertation (PDF)", href: withBasePath("/dissertation-bsc-sertraline.pdf") },
       ],
     },
   },
@@ -651,7 +655,7 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
                   <a href="#contact">Get in touch</a>
                 </Button>
                 <Button asChild size="sm">
-                  <a href="/stefan-ritchie-cv.pdf" download>
+                  <a href={cvDownloadHref} download>
                     <FileDown className="mr-2 h-4 w-4" />Download CV
                   </a>
                 </Button>
@@ -718,7 +722,7 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
                         <a href="#contact" onClick={() => setMobileMenuOpen(false)}>Get in touch</a>
                       </Button>
                       <Button asChild size="sm" className="w-full">
-                        <a href="/stefan-ritchie-cv.pdf" download onClick={() => setMobileMenuOpen(false)}>
+                        <a href={cvDownloadHref} download onClick={() => setMobileMenuOpen(false)}>
                           <FileDown className="mr-2 h-4 w-4" />Download CV
                         </a>
                       </Button>
@@ -1000,7 +1004,7 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
                   </a>
                 </Button>
                 <Button asChild id="cv">
-                  <a href="/stefan-ritchie-cv.pdf" download>
+                  <a href={cvDownloadHref} download>
                     <FileDown className="mr-2 h-4 w-4" /> Download CV (PDF)
                   </a>
                 </Button>
