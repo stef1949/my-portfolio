@@ -6,6 +6,8 @@ import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Github, Linkedin, Mail, FileDown, Cpu, FlaskConical, Brain, Printer, Rocket, GraduationCap, BookOpen, Share2, Repeat2, Menu, X } from "lucide-react";
+import { ThemeToggle } from "./theme-toggle";
+import { fallbackLinkedInPosts, type LinkedInPost } from "@/lib/linkedin-posts";
 
 // ----
 // Simple utility components
@@ -245,30 +247,6 @@ const projects = [
   },
 ];
 
-const linkedinPosts = [
-  {
-    title: "Deep dive: HarmonizeNN evaluation metrics",
-    date: "Jan 2025",
-    blurb:
-      "Thread unpacking how kBET, iLISI, and silhouette scores guided my benchmarking of bulk RNA-seq batch correction models across clinical cohorts.",
-    href: "https://www.linkedin.com/in/stefan-ritchie/recent-activity/posts/",
-  },
-  {
-    title: "Wearable prototyping tips from LumiFur",
-    date: "Nov 2024",
-    blurb:
-      "Shared lessons on iterating embedded BLE wearables, from ESP-IDF DMA pitfalls to optimizing SwiftUI companion apps for latency.",
-    href: "https://www.linkedin.com/in/stefan-ritchie/recent-activity/posts/",
-  },
-  {
-    title: "RNA-seq batch correction best practices",
-    date: "Sep 2024",
-    blurb:
-      "Key takeaways from my MSc dissertation comparing ComBat, Limma, RUVSeq, SVA, and neural methods for harmonising multi-site datasets.",
-    href: "https://www.linkedin.com/in/stefan-ritchie/recent-activity/posts/",
-  },
-];
-
 const experience = [
   { role: "MSc Genetic Manipulation & Molecular Biosciences", org: "University of Sussex", time: "2024–2025" },
   { role: "BSc Biomedical Science", org: "University of Brighton", time: "2019–2023" },
@@ -282,6 +260,8 @@ export default function PortfolioContent() {
   const ROTATE_TARGET_NAME = 'Globe'; // Change to your object name from Spline
   const [mounted, setMounted] = useState(false);
   const [shouldRenderSpline, setShouldRenderSpline] = useState(false);
+  const [linkedinPosts, setLinkedinPosts] = useState<LinkedInPost[]>(fallbackLinkedInPosts);
+  const [linkedinError, setLinkedinError] = useState<string | null>(null);
   const appRef = useRef<Application | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -354,6 +334,45 @@ export default function PortfolioContent() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const loadLinkedInPosts = async () => {
+      try {
+        const response = await fetch('/api/linkedin');
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+        const payload: { posts?: LinkedInPost[]; source?: string; remoteConfigured?: boolean } = await response.json();
+        if (cancelled) return;
+
+        if (Array.isArray(payload.posts) && payload.posts.length) {
+          setLinkedinPosts(payload.posts);
+          if (payload.source === 'remote' || !payload.remoteConfigured) {
+            setLinkedinError(null);
+          } else {
+            setLinkedinError('Showing cached LinkedIn posts while LinkedIn is unreachable.');
+          }
+        } else {
+          if (payload.remoteConfigured) {
+            setLinkedinError('LinkedIn did not return any posts.');
+          }
+        }
+      } catch (error) {
+        console.error('[LinkedIn] Unable to refresh posts', error);
+        if (!cancelled) {
+          setLinkedinError('LinkedIn posts are currently unavailable.');
+        }
+      }
+    };
+
+    loadLinkedInPosts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const detectWebGL = () => {
@@ -400,7 +419,7 @@ export default function PortfolioContent() {
   }, [expandedProject]);
 
   const handleSharePost = async (title: string, href: string) => {
-    const shareUrl = href;
+    const shareUrl = href || 'https://www.linkedin.com/in/stefan-ritchie/';
     try {
       if (typeof navigator !== 'undefined' && 'share' in navigator && typeof navigator.share === 'function') {
         await navigator.share({ title, url: shareUrl });
@@ -662,6 +681,7 @@ export default function PortfolioContent() {
 
             {/* Desktop Buttons */}
             <div className="hidden md:flex items-center gap-2">
+              <ThemeToggle />
               <Button asChild size="sm" variant="outline">
                 <a href="#contact">Get in touch</a>
               </Button>
@@ -729,6 +749,12 @@ export default function PortfolioContent() {
                     <FileDown className="mr-2 h-4 w-4" />Download CV
                   </a>
                 </Button>
+                <ThemeToggle
+                  size="sm"
+                  variant="outline"
+                  className="w-full justify-start"
+                  showLabel
+                />
               </div>
             </nav>
           </motion.div>
@@ -871,52 +897,60 @@ export default function PortfolioContent() {
 
       {/* LinkedIn */}
       <Section id="linkedin" title="LinkedIn" subtitle="Recent posts and threads from my professional feed.">
+        {linkedinError && (
+          <p className="mb-3 text-sm text-destructive/80 dark:text-destructive/90">
+            {linkedinError}
+          </p>
+        )}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {linkedinPosts.map((post) => (
-            <motion.div key={post.title} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-              <Card className="h-full">
-                <CardHeader className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
-                    <Linkedin className="w-4 h-4" />
-                    <span>{post.date}</span>
-                  </div>
-                  <h3 className="text-lg font-semibold leading-snug">{post.title}</h3>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground min-h-[64px]">{post.blurb}</p>
-                </CardContent>
-                <CardFooter className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                  <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
-                    <a href={post.href} target="_blank" rel="noopener noreferrer">
-                      View on LinkedIn
-                    </a>
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="w-full sm:w-auto"
-                    onClick={() => handleSharePost(post.title, post.href)}
-                  >
-                    <Share2 className="mr-2 h-4 w-4" />Share
-                  </Button>
-                  <Button asChild size="sm" variant="ghost" className="w-full sm:w-auto">
-                    <a
-                      href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(post.href)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+          {linkedinPosts.map((post) => {
+            const postHref = post.href || 'https://www.linkedin.com/in/stefan-ritchie/';
+            return (
+              <motion.div key={`${post.title}-${postHref}`} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+                <Card className="h-full">
+                  <CardHeader className="space-y-2">
+                    <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+                      <Linkedin className="w-4 h-4" />
+                      <span>{post.date}</span>
+                    </div>
+                    <h3 className="text-lg font-semibold leading-snug">{post.title}</h3>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground min-h-[64px]">{post.blurb}</p>
+                  </CardContent>
+                  <CardFooter className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                    <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
+                      <a href={postHref} target="_blank" rel="noopener noreferrer">
+                        View on LinkedIn
+                      </a>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="w-full sm:w-auto"
+                      onClick={() => handleSharePost(post.title, postHref)}
                     >
-                      <Repeat2 className="mr-2 h-4 w-4" />Repost
-                    </a>
-                  </Button>
-                  {sharedPost === post.title && (
-                    <p className="text-xs text-muted-foreground sm:basis-full">
-                      Link ready to share—paste anywhere you like.
-                    </p>
-                  )}
-                </CardFooter>
-              </Card>
-            </motion.div>
-          ))}
+                      <Share2 className="mr-2 h-4 w-4" />Share
+                    </Button>
+                    <Button asChild size="sm" variant="ghost" className="w-full sm:w-auto">
+                      <a
+                        href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(postHref)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Repeat2 className="mr-2 h-4 w-4" />Repost
+                      </a>
+                    </Button>
+                    {sharedPost === post.title && (
+                      <p className="text-xs text-muted-foreground sm:basis-full">
+                        Link ready to share—paste anywhere you like.
+                      </p>
+                    )}
+                  </CardFooter>
+                </Card>
+              </motion.div>
+            );
+          })}
         </div>
       </Section>
 
