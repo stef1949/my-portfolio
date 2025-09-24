@@ -69,6 +69,12 @@ jobs:
             echo "Using project page base path /$REPO_NAME"
           fi
 
+      - name: Configure env for LinkedIn feed
+        run: |
+          cat <<'EOF' >> .env.local
+          LINKEDIN_POSTS_ENDPOINT=${{ secrets.LINKEDIN_POSTS_ENDPOINT }}
+          EOF
+          
       - name: Build static site (Next export)
         run: |
           echo "Base path: ${NEXT_PUBLIC_BASE_PATH}"
