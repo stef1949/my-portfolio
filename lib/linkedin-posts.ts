@@ -56,7 +56,9 @@ const normalizePost = (value: unknown): LinkedInPost | null => {
 };
 
 export async function loadLinkedInPosts(): Promise<LinkedInPostResult> {
-  const endpoint = process.env.LINKEDIN_POSTS_ENDPOINT;
+  const endpoint =
+    (process as unknown as { env?: { LINKEDIN_POSTS_ENDPOINT?: string } }).env
+      ?.LINKEDIN_POSTS_ENDPOINT;
 
   if (!endpoint) {
     return {

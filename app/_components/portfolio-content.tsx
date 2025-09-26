@@ -44,7 +44,8 @@ const Badge = ({ children }: { children: React.ReactNode }) => (
   </span>
 );
 
-const basePath = (process.env.NEXT_PUBLIC_BASE_PATH ?? "").replace(/\/$/, "");
+// Use a safe any-cast to read env var so TypeScript doesn't complain about Process typings
+const basePath = (((process as any)?.env?.NEXT_PUBLIC_BASE_PATH) ?? "").replace(/\/$/, "");
 const withBasePath = (path: string) => `${basePath}${path.startsWith("/") ? path : `/${path}`}`;
 const cvDownloadHref = withBasePath("/stefan-ritchie-cv.pdf");
 
