@@ -55,6 +55,28 @@ const normalizePost = (value: unknown): LinkedInPost | null => {
   };
 };
 
+const LINKEDIN_CACHE_TTL_MS = 1000 * 60 * 5;
+
+type LinkedInCacheBucket = {
+  endpoint: string | null;
+  expiresAt: number;
+  result: LinkedInPostResult;
+};
+
+const getGlobalCache = (): LinkedInCacheBucket | null => {
+  const globalObject = globalThis as typeof globalThis & {
+    __linkedinCache?: LinkedInCacheBucket;
+  };
+  return globalObject.__linkedinCache ?? null;
+};
+
+const setGlobalCache = (bucket: LinkedInCacheBucket) => {
+  const globalObject = globalThis as typeof globalThis & {
+    __linkedinCache?: LinkedInCacheBucket;
+  };
+  globalObject.__linkedinCache = bucket;
+};
+
 export async function loadLinkedInPosts(): Promise<LinkedInPostResult> {
   const endpoint =
     (process as unknown as { env?: { LINKEDIN_POSTS_ENDPOINT?: string } }).env
@@ -68,10 +90,19 @@ export async function loadLinkedInPosts(): Promise<LinkedInPostResult> {
     };
   }
 
+  const cached = getGlobalCache();
+  if (cached && cached.endpoint === endpoint && cached.expiresAt > Date.now()) {
+    return cached.result;
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+
   try {
     const response = await fetch(endpoint, {
       headers: { Accept: "application/json" },
-      cache: "force-cache",
+      cache: "no-store",
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -93,17 +124,35 @@ export async function loadLinkedInPosts(): Promise<LinkedInPostResult> {
       throw new Error("LinkedIn source returned no valid posts");
     }
 
-    return {
+    const result: LinkedInPostResult = {
       posts,
       source: "remote",
       message: null,
     };
+
+    setGlobalCache({
+      endpoint,
+      expiresAt: Date.now() + LINKEDIN_CACHE_TTL_MS,
+      result,
+    });
+
+    return result;
   } catch (error) {
     console.error("[LinkedIn] Failed to load remote posts", error);
-    return {
+    const fallbackResult: LinkedInPostResult = {
       posts: fallbackLinkedInPosts,
       source: "fallback",
       message: "LinkedIn posts are temporarily unavailable; showing cached highlights instead.",
     };
+
+    setGlobalCache({
+      endpoint,
+      expiresAt: Date.now() + LINKEDIN_CACHE_TTL_MS,
+      result: fallbackResult,
+    });
+
+    return fallbackResult;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }

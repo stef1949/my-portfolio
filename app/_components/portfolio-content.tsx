@@ -49,6 +49,20 @@ const basePath = (process.env.NEXT_PUBLIC_BASE_PATH ?? "").replace(/\/$/, "");
 const withBasePath = (path: string) => `${basePath}${path.startsWith("/") ? path : `/${path}`}`;
 const cvDownloadHref = withBasePath("/stefan-ritchie-cv.pdf");
 
+type SplineApplicationCtor = new (canvas: HTMLCanvasElement) => Application;
+
+const loadSplineRuntime = (() => {
+  let runtimePromise: Promise<SplineApplicationCtor> | null = null;
+  return async () => {
+    if (!runtimePromise) {
+      runtimePromise = import("@splinetool/runtime").then(
+        (mod) => mod.Application as SplineApplicationCtor,
+      );
+    }
+    return runtimePromise;
+  };
+})();
+
 // ----
 // Data (feel free to edit these)
 // ----
@@ -459,11 +473,11 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
     const setup = async () => {
       if (!canvasRef.current || !containerRef.current) return;
       try {
-        const { Application } = await import('@splinetool/runtime');
+        const ApplicationCtor = await loadSplineRuntime();
         if (cancelled || !canvasRef.current) return;
 
         const canvas = canvasRef.current;
-        const app = new Application(canvas);
+        const app = new ApplicationCtor(canvas);
         const disposableApp = app as unknown as { dispose?: () => void };
         if (cancelled) {
           disposableApp.dispose?.();
