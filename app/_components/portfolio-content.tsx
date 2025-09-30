@@ -8,7 +8,18 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Github, Linkedin, Mail, FileDown, Cpu, FlaskConical, Brain, Printer, Rocket, GraduationCap, BookOpen, Share2, Repeat2, Menu, X } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import type { LinkedInPost } from "@/lib/linkedin-posts";
+import LiquidGlass from 'liquid-glass-react'
 
+function App() {
+  return (
+    <LiquidGlass>
+      <div className="p-6">
+        <h2>Your content here</h2>
+        <p>This will have the liquid glass effect</p>
+      </div>
+    </LiquidGlass>
+  )
+}
 // ----
 // Simple utility components
 // ----
@@ -647,7 +658,19 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
 
         {/* Nav */}
         <header className="fixed top-6 left-0 right-0 z-30 px-4 sm:px-6 flex justify-center pointer-events-none">
-          <div className="relative w-full max-w-5xl pointer-events-auto">
+
+          <LiquidGlass
+              displacementScale={64}
+              blurAmount={0.1}
+              saturation={130}
+              aberrationIntensity={2}
+              elasticity={0.35}
+              cornerRadius={100}
+              padding="2px 10px"
+              mode="shader"
+              onClick={() => console.log('Button clicked!')}
+            >
+            <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-muted">See my work</span>
             <div className="flex items-center justify-between gap-4 rounded-full border bg-background/80 px-4 sm:px-6 py-2.5 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/60">
               <div className="flex items-center gap-2 font-semibold tracking-tight">
                 <Rocket className="w-5 h-5" />
