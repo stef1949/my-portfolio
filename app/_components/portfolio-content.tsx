@@ -298,6 +298,7 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
   const appRef = useRef<Application | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const navMouseContainerRef = useRef<HTMLDivElement | null>(null);
   const scrollRafRef = useRef<number | null>(null);
   const [sharedPost, setSharedPost] = useState<string | null>(null);
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
@@ -658,56 +659,58 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
 
         {/* Nav */}
         <header className="fixed top-6 left-0 right-0 z-30 px-4 sm:px-6 flex justify-center pointer-events-none">
-
-          <LiquidGlass
+          <div ref={navMouseContainerRef} className="pointer-events-auto relative">
+            <LiquidGlass
               displacementScale={64}
               blurAmount={0.1}
               saturation={130}
               aberrationIntensity={2}
-              elasticity={0.35}
+              elasticity={0.3}
               cornerRadius={100}
-              padding="2px 10px"
+              padding="2px 2px"
               mode="shader"
-              onClick={() => console.log('Button clicked!')}
+              mouseContainer={navMouseContainerRef}
+              className="inline-flex"
+              style={{ position: 'fixed', left: '50%' }}
             >
-            <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-muted">See my work</span>
-            <div className="flex items-center justify-between gap-4 rounded-full border bg-background/80 px-4 sm:px-6 py-2.5 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/60">
-              <div className="flex items-center gap-2 font-semibold tracking-tight">
-                <Rocket className="w-5 h-5" />
-                <span>Stephie Ritchie</span>
+              <div className="flex items-center justify-between gap-4 rounded-full border border-border/60 bg-background/80 px-4 sm:px-6 py-2.5 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/60 text-[var(--foreground)]">
+                <div className="flex items-center gap-2 font-semibold tracking-tight">
+                  <Rocket className="w-5 h-5" />
+                  <span>Stephie Ritchie</span>
+                </div>
+
+                {/* Desktop Navigation */}
+                <nav className="hidden md:flex gap-6 text-sm">
+                  <a className="hover:opacity-80" href="#about">About</a>
+                  <a className="hover:opacity-80" href="#projects">Projects</a>
+                  <a className="hover:opacity-80" href="#linkedin">LinkedIn</a>
+                  <a className="hover:opacity-80" href="#experience">Experience</a>
+                  <a className="hover:opacity-80" href="#contact">Contact</a>
+                </nav>
+
+                {/* Desktop Buttons */}
+                <div className="hidden md:flex items-center gap-2">
+                  <ThemeToggle />
+                  <Button asChild size="sm" variant="outline">
+                    <a href="#contact">Get in touch</a>
+                  </Button>
+                  <Button asChild size="sm">
+                    <a href={cvDownloadHref} download>
+                      <FileDown className="mr-2 h-4 w-4" />Download CV
+                    </a>
+                  </Button>
+                </div>
+
+                {/* Mobile Menu Button */}
+                <button
+                  className="md:hidden p-2 hover:bg-accent/80 rounded-md transition-colors"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  aria-label="Toggle mobile menu"
+                >
+                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </button>
               </div>
-
-              {/* Desktop Navigation */}
-              <nav className="hidden md:flex gap-6 text-sm">
-                <a className="hover:opacity-80" href="#about">About</a>
-                <a className="hover:opacity-80" href="#projects">Projects</a>
-                <a className="hover:opacity-80" href="#linkedin">LinkedIn</a>
-                <a className="hover:opacity-80" href="#experience">Experience</a>
-                <a className="hover:opacity-80" href="#contact">Contact</a>
-              </nav>
-
-              {/* Desktop Buttons */}
-              <div className="hidden md:flex items-center gap-2">
-                <ThemeToggle />
-                <Button asChild size="sm" variant="outline">
-                  <a href="#contact">Get in touch</a>
-                </Button>
-                <Button asChild size="sm">
-                  <a href={cvDownloadHref} download>
-                    <FileDown className="mr-2 h-4 w-4" />Download CV
-                  </a>
-                </Button>
-              </div>
-
-              {/* Mobile Menu Button */}
-              <button
-                className="md:hidden p-2 hover:bg-accent/80 rounded-md transition-colors"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label="Toggle mobile menu"
-              >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
-            </div>
+            </LiquidGlass>
 
             {/* Mobile Navigation Overlay */}
             <AnimatePresence>
