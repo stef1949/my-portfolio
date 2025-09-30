@@ -651,33 +651,33 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
         {/* Nav */}
         
           <LiquidGlass
-            displacementScale={100}
-            blurAmount={0.1}
+            displacementScale={64}
+            blurAmount={0.0}
             saturation={130}
             aberrationIntensity={2}
             elasticity={0.5}
             cornerRadius={100}
-            padding="20px 20px"
-            mode="shader"
+            padding="10px 10px"
+            mode="standard"
             mouseContainer={navMouseContainerRef}
-            style={{ zIndex: 10, position: 'fixed', top: '5%', left: '50%'}}
+            style={{ zIndex: 1, position: 'fixed', top: '6%', left: '50%'}}
             onClick={() => console.log('Button clicked!')}
 
           >
-            <header className="font-medium flex items-center gap-2">
+            <header className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
 
               <div className="flex items-center gap-2 font-semibold tracking-tight">
-                <Rocket className="w-5 h-5" />
+                <Rocket className="w-5 h-5 text-primary dark:text-primary" />
                 <span>Stephie Ritchie</span>
               </div>
 
               {/* Desktop Navigation */}
-              <nav className="hidden md:flex gap-6 text-sm">
-                <a className="hover:opacity-80" href="#about">About</a>
-                <a className="hover:opacity-80" href="#projects">Projects</a>
-                <a className="hover:opacity-80" href="#linkedin">LinkedIn</a>
-                <a className="hover:opacity-80" href="#experience">Experience</a>
-                <a className="hover:opacity-80" href="#contact">Contact</a>
+              <nav className="hidden md:flex gap-6 text-sm text-slate-800 dark:text-slate-100">
+                <a className="transition-colors hover:text-slate-950 dark:hover:text-white" href="#about">About</a>
+                <a className="transition-colors hover:text-slate-950 dark:hover:text-white" href="#projects">Projects</a>
+                <a className="transition-colors hover:text-slate-950 dark:hover:text-white" href="#linkedin">LinkedIn</a>
+                <a className="transition-colors hover:text-slate-950 dark:hover:text-white" href="#experience">Experience</a>
+                <a className="transition-colors hover:text-slate-950 dark:hover:text-white" href="#contact">Contact</a>
               </nav>
 
               {/* Desktop Buttons */}
