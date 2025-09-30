@@ -8,18 +8,8 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Github, Linkedin, Mail, FileDown, Cpu, FlaskConical, Brain, Printer, Rocket, GraduationCap, BookOpen, Share2, Repeat2, Menu, X } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import type { LinkedInPost } from "@/lib/linkedin-posts";
-import LiquidGlass from 'liquid-glass-react'
+import LiquidGlass from '@nkzw/liquid-glass';
 
-function App() {
-  return (
-    <LiquidGlass>
-      <div className="p-6">
-        <h2>Your content here</h2>
-        <p>This will have the liquid glass effect</p>
-      </div>
-    </LiquidGlass>
-  )
-}
 // ----
 // Simple utility components
 // ----
@@ -661,19 +651,19 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
         <header className="fixed top-6 left-0 right-0 z-30 px-4 sm:px-6 flex justify-center pointer-events-none">
           <div ref={navMouseContainerRef} className="pointer-events-auto relative">
             <LiquidGlass
-              displacementScale={64}
+              displacementScale={100}
               blurAmount={0.1}
               saturation={130}
               aberrationIntensity={2}
-              elasticity={0.3}
-              cornerRadius={100}
+              elasticity={0.5}
+              borderRadius={100}
               padding="2px 2px"
-              mode="shader"
+              mode="standard"
               mouseContainer={navMouseContainerRef}
-              className="inline-flex"
-              style={{ position: 'fixed', left: '50%' }}
+              style={{ position: 'fixed', top: '10%', left: '50%' }}
+              onClick={() => console.log('Button clicked!')}
             >
-              <div className="flex items-center justify-between gap-4 rounded-full border border-border/60 bg-background/80 px-4 sm:px-6 py-2.5 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/60 text-[var(--foreground)]">
+              <span className="flex items-center justify-between gap-4 rounded-full border border-border/60 bg-background/80 px-4 sm:px-6 py-2.5 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/60 text-[var(--foreground)]">
                 <div className="flex items-center gap-2 font-semibold tracking-tight">
                   <Rocket className="w-5 h-5" />
                   <span>Stephie Ritchie</span>
@@ -709,7 +699,7 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
                 >
                   {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                 </button>
-              </div>
+              </span>
             </LiquidGlass>
 
             {/* Mobile Navigation Overlay */}
