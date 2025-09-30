@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Github, Linkedin, Mail, FileDown, Cpu, FlaskConical, Brain, Printer, Rocket, GraduationCap, BookOpen, Share2, Repeat2, Menu, X } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import type { LinkedInPost } from "@/lib/linkedin-posts";
-import LiquidGlass from '@nkzw/liquid-glass';
+import LiquidGlass from 'liquid-glass-react'
 
 // ----
 // Simple utility components
@@ -347,7 +347,7 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
       if (a?.scene) walk(a.scene);
       // Some runtimes keep top-level objects under app.
       walk(app);
-    } catch {}
+    } catch { }
     return Array.from(new Set(names)).filter(Boolean);
   }, []);
 
@@ -522,7 +522,7 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
             try {
               const obj = a.findObjectByName(ROTATE_TARGET_NAME);
               if (obj) return obj;
-            } catch {}
+            } catch { }
           }
           if (a?.findObjectByName) {
             const candidates = ['Root', 'root', 'Scene', 'scene', 'Model', 'Group', 'Empty', 'Pivot'];
@@ -530,7 +530,7 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
               try {
                 const obj = a.findObjectByName(name);
                 if (obj) return obj;
-              } catch {}
+              } catch { }
             }
           }
           const children = a?.scene?.children;
@@ -568,12 +568,12 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
               try {
                 target.rotation.y = angle;
                 return;
-              } catch {}
+              } catch { }
             }
             if (runtimeLike?.setRotation && target?.id != null) {
               try {
                 runtimeLike.setRotation(target.id, 0, angle, 0);
-              } catch {}
+              } catch { }
             }
           });
         };
@@ -621,6 +621,7 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
   return (
     <LayoutGroup>
       <div className="static min-h-screen bg-background text-foreground selection:bg-foreground ">
+        <div ref={navMouseContainerRef} className="pointer-events-auto relative">
         {/* Background Spline scene (fixed right, behind content) */}
         <div className="fixed inset-0 z-0">
           <div className="absolute inset-0">
@@ -648,433 +649,436 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
         </div>
 
         {/* Nav */}
-        <header className="fixed top-6 left-0 right-0 z-30 px-4 sm:px-6 flex justify-center pointer-events-none">
-          <div ref={navMouseContainerRef} className="pointer-events-auto relative">
-            <LiquidGlass
-              displacementScale={100}
-              blurAmount={0.1}
-              saturation={130}
-              aberrationIntensity={2}
-              elasticity={0.5}
-              borderRadius={100}
-              padding="2px 2px"
-              mode="standard"
-              mouseContainer={navMouseContainerRef}
-              style={{ position: 'fixed', top: '10%', left: '50%' }}
-              onClick={() => console.log('Button clicked!')}
-            >
-              <span className="flex items-center justify-between gap-4 rounded-full border border-border/60 bg-background/80 px-4 sm:px-6 py-2.5 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/60 text-[var(--foreground)]">
-                <div className="flex items-center gap-2 font-semibold tracking-tight">
-                  <Rocket className="w-5 h-5" />
-                  <span>Stephie Ritchie</span>
-                </div>
+        
+          <LiquidGlass
+            displacementScale={100}
+            blurAmount={0.1}
+            saturation={130}
+            aberrationIntensity={2}
+            elasticity={0.5}
+            cornerRadius={100}
+            padding="20px 20px"
+            mode="shader"
+            mouseContainer={navMouseContainerRef}
+            style={{ zIndex: 10, position: 'fixed', top: '5%', left: '50%'}}
+            onClick={() => console.log('Button clicked!')}
 
-                {/* Desktop Navigation */}
-                <nav className="hidden md:flex gap-6 text-sm">
-                  <a className="hover:opacity-80" href="#about">About</a>
-                  <a className="hover:opacity-80" href="#projects">Projects</a>
-                  <a className="hover:opacity-80" href="#linkedin">LinkedIn</a>
-                  <a className="hover:opacity-80" href="#experience">Experience</a>
-                  <a className="hover:opacity-80" href="#contact">Contact</a>
-                </nav>
+          >
+            <header className="font-medium flex items-center gap-2">
 
-                {/* Desktop Buttons */}
-                <div className="hidden md:flex items-center gap-2">
-                  <ThemeToggle />
-                  <Button asChild size="sm" variant="outline">
-                    <a href="#contact">Get in touch</a>
-                  </Button>
-                  <Button asChild size="sm">
-                    <a href={cvDownloadHref} download>
-                      <FileDown className="mr-2 h-4 w-4" />Download CV
-                    </a>
-                  </Button>
-                </div>
+              <div className="flex items-center gap-2 font-semibold tracking-tight">
+                <Rocket className="w-5 h-5" />
+                <span>Stephie Ritchie</span>
+              </div>
 
-                {/* Mobile Menu Button */}
-                <button
-                  className="md:hidden p-2 hover:bg-accent/80 rounded-md transition-colors"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  aria-label="Toggle mobile menu"
-                >
-                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </button>
-              </span>
-            </LiquidGlass>
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex gap-6 text-sm">
+                <a className="hover:opacity-80" href="#about">About</a>
+                <a className="hover:opacity-80" href="#projects">Projects</a>
+                <a className="hover:opacity-80" href="#linkedin">LinkedIn</a>
+                <a className="hover:opacity-80" href="#experience">Experience</a>
+                <a className="hover:opacity-80" href="#contact">Contact</a>
+              </nav>
 
-            {/* Mobile Navigation Overlay */}
-            <AnimatePresence>
-              {mobileMenuOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="md:hidden absolute left-0 right-0 top-full mt-3 rounded-3xl border bg-background/95 shadow-xl"
-                >
-                  <nav className="px-4 py-4 space-y-4">
-                    <a
-                      className="block text-sm hover:opacity-80 py-2"
-                      href="#about"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      About
-                    </a>
-                    <a
-                      className="block text-sm hover:opacity-80 py-2"
-                      href="#projects"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Projects
-                    </a>
-                    <a
-                      className="block text-sm hover:opacity-80 py-2"
-                      href="#linkedin"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      LinkedIn
-                    </a>
-                    <a
-                      className="block text-sm hover:opacity-80 py-2"
-                      href="#experience"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Experience
-                    </a>
-                    <a
-                      className="block text-sm hover:opacity-80 py-2"
-                      href="#contact"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Contact
-                    </a>
-                    <div className="pt-4 space-y-3 border-t">
-                      <Button asChild size="sm" variant="outline" className="w-full">
-                        <a href="#contact" onClick={() => setMobileMenuOpen(false)}>Get in touch</a>
-                      </Button>
-                      <Button asChild size="sm" className="w-full">
-                        <a href={cvDownloadHref} download onClick={() => setMobileMenuOpen(false)}>
-                          <FileDown className="mr-2 h-4 w-4" />Download CV
-                        </a>
-                      </Button>
-                      <ThemeToggle
-                        size="sm"
-                        variant="outline"
-                        className="w-full justify-start"
-                        showLabel
-                      />
-                    </div>
-                  </nav>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </header>
+              {/* Desktop Buttons */}
+              <div className="hidden md:flex items-center gap-2">
+                <ThemeToggle />
+                <Button asChild size="sm" variant="outline">
+                  <a href="#contact">Get in touch</a>
+                </Button>
+                <Button asChild size="sm">
+                  <a href={cvDownloadHref} download>
+                    <FileDown className="mr-2 h-4 w-4" />Download CV
+                  </a>
+                </Button>
+              </div>
 
-      {/* Hero */}
-      <section className="relative mx-auto max-w-6xl px-6 sm:px-8 min-h-screen flex items-center pt-28 pb-24">
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-3xl"
-        >
-          <h1 className="text-4xl md:text-7xl font-extrabold tracking-tight leading-tight">
-            Computational biologist & maker building <span className="bg-clip-text text-transparent bg-linear-to-r from-foreground to-foreground/60">beautifully engineered</span> tools.
-          </h1>
-          <p className="mt-4 text-xl md:text-lg text-muted-foreground">
-            MSc in Genetic Manipulation & Molecular Biosciences. I build bioinformatics pipelines, GPU‑accelerated simulations, and immersive hardware like the <em>LumiFur</em> visor system.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-2">
-            <Badge>RNA‑seq</Badge>
-            <Badge>Batch Correction</Badge>
-            <Badge>ESP32‑S3</Badge>
-            <Badge>C++</Badge>
-            <Badge>SwiftUI</Badge>
-            <Badge>CUDA/CuPy</Badge>
-            <Badge>Docker</Badge>
-            <Badge>Nextflow</Badge>
-            <Badge>HPC</Badge>
-          </div>
-          <div className="mt-8 flex gap-3">
-            <Button asChild>
-              <a href="#projects">See my work</a>
-            </Button>
-            <Button asChild variant="outline">
-              <a href="#about">About me</a>
-            </Button>
-          </div>
-        </motion.div>
-      </section>
+              {/* Mobile Menu Button */}
+              <button
+                className="md:hidden p-2 hover:bg-accent/80 rounded-md transition-colors"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Toggle mobile menu"
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
 
-      {/* About */}
-      <Section id="about" title="About" subtitle="Brighton‑based bioinformatician and 3D‑printing entrepreneur.">
-        <div className="grid md:grid-cols-3 gap-6 items-start">
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <h3 className="text-xl font-semibold">What I do</h3>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
-              <p>
-                I design robust, reproducible analysis tooling for genomics (RNA‑seq batch correction, QC dashboards, containerised workflows) and craft high‑performance visual interfaces.
-              </p>
-              <p>
-                On the hardware side, I prototype embedded systems for wearables and interactive displays, shipping turnkey kits and custom parts via my company, <strong>Richies 3D Ltd</strong>.
-              </p>
-              <p>
-                My MSc dissertation, <em>Evaluating Bulk RNASeq Batch Correction Processes</em>, benchmarks ComBat, Limma, RUVSeq, SVA, and neural approaches to deliver best‑practice guidance for harmonising clinical cohorts.
-              </p>
-              <p>
-                Earlier, my BSc dissertation carried out molecular dynamics on Sertraline binding to the zebrafish serotonin transporter, coupling binding free energy and RMSD metrics to highlight translational toxicology considerations.
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <h3 className="text-xl font-semibold">Tech stack</h3>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-2">
-              {[
-                "Python",
-                "R",
-                "PyTorch",
-                "Nextflow",
-                "Docker",
-                "SwiftUI",
-                "ESP‑IDF",
-                "C/C++",
-                "Hub75 DMA",
-                "GitHub Actions",
-              ].map((t) => (
-                <Badge key={t}>{t}</Badge>
-              ))}
-            </CardContent>
-          </Card>
+
+
+              {/* Mobile Navigation Overlay */}
+              <AnimatePresence>
+                {mobileMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="md:hidden absolute left-0 right-0 top-full mt-3 rounded-3xl border bg-background/95 shadow-xl"
+                  >
+                    <nav className="px-4 py-4 space-y-4">
+                      <a
+                        className="block text-sm hover:opacity-80 py-2"
+                        href="#about"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        About
+                      </a>
+                      <a
+                        className="block text-sm hover:opacity-80 py-2"
+                        href="#projects"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Projects
+                      </a>
+                      <a
+                        className="block text-sm hover:opacity-80 py-2"
+                        href="#linkedin"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        LinkedIn
+                      </a>
+                      <a
+                        className="block text-sm hover:opacity-80 py-2"
+                        href="#experience"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Experience
+                      </a>
+                      <a
+                        className="block text-sm hover:opacity-80 py-2"
+                        href="#contact"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Contact
+                      </a>
+                      <div className="pt-4 space-y-3 border-t">
+                        <Button asChild size="sm" variant="outline" className="w-full">
+                          <a href="#contact" onClick={() => setMobileMenuOpen(false)}>Get in touch</a>
+                        </Button>
+                        <Button asChild size="sm" className="w-full">
+                          <a href={cvDownloadHref} download onClick={() => setMobileMenuOpen(false)}>
+                            <FileDown className="mr-2 h-4 w-4" />Download CV
+                          </a>
+                        </Button>
+                        <ThemeToggle
+                          size="sm"
+                          variant="outline"
+                          className="w-full justify-start"
+                          showLabel
+                        />
+                      </div>
+                    </nav>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </header>
+
+          </LiquidGlass>
         </div>
-      </Section>
+        {/* Hero */}
+        <section className="relative mx-auto max-w-6xl px-6 sm:px-8 min-h-screen flex items-center pt-28 pb-24">
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="max-w-3xl"
+          >
+            <h1 className="text-4xl md:text-7xl font-extrabold tracking-tight leading-tight">
+              Computational biologist & maker building <span className="bg-clip-text text-transparent bg-linear-to-r from-foreground to-foreground/60">beautifully engineered</span> tools.
+            </h1>
+            <p className="mt-4 text-xl md:text-lg text-muted-foreground">
+              MSc in Genetic Manipulation & Molecular Biosciences. I build bioinformatics pipelines, GPU‑accelerated simulations, and immersive hardware like the <em>LumiFur</em> visor system.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              <Badge>RNA‑seq</Badge>
+              <Badge>Batch Correction</Badge>
+              <Badge>ESP32‑S3</Badge>
+              <Badge>C++</Badge>
+              <Badge>SwiftUI</Badge>
+              <Badge>CUDA/CuPy</Badge>
+              <Badge>Docker</Badge>
+              <Badge>Nextflow</Badge>
+              <Badge>HPC</Badge>
+            </div>
+            <div className="mt-8 flex gap-3">
+              <Button asChild>
+                <a href="#projects">See my work</a>
+              </Button>
+              <Button asChild variant="outline">
+                <a href="#about">About me</a>
+              </Button>
+            </div>
+          </motion.div>
+        </section>
 
-      {/* Projects */}
-      <Section id="projects" title="Projects" subtitle="Selected work spanning software, research, and hardware.">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((p) => (
-            <motion.div
-              key={p.title}
-              layoutId={p.title}
-              layout
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <Card className="h-full">
-                <CardHeader className="space-y-1">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    {p.icon}
-                    <span className="text-xs uppercase tracking-wide">Project</span>
-                  </div>
-                  <h3 className="text-lg font-semibold leading-snug">{p.title}</h3>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground min-h-[64px]">{p.blurb}</p>
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    {p.tags.map((t: string) => (
-                      <Badge key={t}>{t}</Badge>
-                    ))}
-                  </div>
-                </CardContent>
-                <CardFooter className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                  <Button asChild size="sm" className="w-full sm:w-auto">
-                    <a href={p.cta.href} target="_blank" rel="noopener noreferrer">
-                      {p.cta.label}
-                    </a>
-                  </Button>
-                  {p.details && (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="w-full sm:w-auto"
-                      onClick={() => toggleProjectDetails(p.title)}
-                      aria-expanded={expandedProject === p.title}
-                    >
-                      {expandedProject === p.title ? 'Hide details' : 'Show details'}
-                    </Button>
-                  )}
-                </CardFooter>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </Section>
-
-      {/* LinkedIn */}
-      <Section id="linkedin" title="LinkedIn" subtitle="Recent posts and threads from my professional feed.">
-        {linkedinMessage && (
-          <p className="mb-3 text-sm text-destructive/80 dark:text-destructive/90">
-            {linkedinMessage}
-          </p>
-        )}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {linkedinPosts.length === 0 && (
-            <Card className="sm:col-span-2 lg:col-span-3">
-              <CardContent className="py-6 text-sm text-muted-foreground">
-                No LinkedIn posts are published yet—check back soon.
+        {/* About */}
+        <Section id="about" title="About" subtitle="Brighton‑based bioinformatician and 3D‑printing entrepreneur.">
+          <div className="grid md:grid-cols-3 gap-6 items-start">
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <h3 className="text-xl font-semibold">What I do</h3>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+                <p>
+                  I design robust, reproducible analysis tooling for genomics (RNA‑seq batch correction, QC dashboards, containerised workflows) and craft high‑performance visual interfaces.
+                </p>
+                <p>
+                  On the hardware side, I prototype embedded systems for wearables and interactive displays, shipping turnkey kits and custom parts via my company, <strong>Richies 3D Ltd</strong>.
+                </p>
+                <p>
+                  My MSc dissertation, <em>Evaluating Bulk RNASeq Batch Correction Processes</em>, benchmarks ComBat, Limma, RUVSeq, SVA, and neural approaches to deliver best‑practice guidance for harmonising clinical cohorts.
+                </p>
+                <p>
+                  Earlier, my BSc dissertation carried out molecular dynamics on Sertraline binding to the zebrafish serotonin transporter, coupling binding free energy and RMSD metrics to highlight translational toxicology considerations.
+                </p>
               </CardContent>
             </Card>
-          )}
-          {linkedinPosts.map((post) => {
-            const postHref = post.href || 'https://www.linkedin.com/in/stefan-ritchie/';
-            return (
-              <motion.div key={`${post.title}-${postHref}`} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <Card>
+              <CardHeader>
+                <h3 className="text-xl font-semibold">Tech stack</h3>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-2">
+                {[
+                  "Python",
+                  "R",
+                  "PyTorch",
+                  "Nextflow",
+                  "Docker",
+                  "SwiftUI",
+                  "ESP‑IDF",
+                  "C/C++",
+                  "Hub75 DMA",
+                  "GitHub Actions",
+                ].map((t) => (
+                  <Badge key={t}>{t}</Badge>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        </Section>
+
+        {/* Projects */}
+        <Section id="projects" title="Projects" subtitle="Selected work spanning software, research, and hardware.">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map((p) => (
+              <motion.div
+                key={p.title}
+                layoutId={p.title}
+                layout
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+              >
                 <Card className="h-full">
-                  <CardHeader className="space-y-2">
-                    <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
-                      <Linkedin className="w-4 h-4" />
-                      <span>{post.date}</span>
+                  <CardHeader className="space-y-1">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      {p.icon}
+                      <span className="text-xs uppercase tracking-wide">Project</span>
                     </div>
-                    <h3 className="text-lg font-semibold leading-snug">{post.title}</h3>
+                    <h3 className="text-lg font-semibold leading-snug">{p.title}</h3>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground min-h-[64px]">{post.blurb}</p>
+                    <p className="text-sm text-muted-foreground min-h-[64px]">{p.blurb}</p>
+                    <div className="mt-4 flex flex-wrap gap-1.5">
+                      {p.tags.map((t: string) => (
+                        <Badge key={t}>{t}</Badge>
+                      ))}
+                    </div>
                   </CardContent>
                   <CardFooter className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                    <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
-                      <a href={postHref} target="_blank" rel="noopener noreferrer">
-                        View on LinkedIn
+                    <Button asChild size="sm" className="w-full sm:w-auto">
+                      <a href={p.cta.href} target="_blank" rel="noopener noreferrer">
+                        {p.cta.label}
                       </a>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="w-full sm:w-auto"
-                      onClick={() => handleSharePost(post.title, postHref)}
-                    >
-                      <Share2 className="mr-2 h-4 w-4" />Share
-                    </Button>
-                    <Button asChild size="sm" variant="ghost" className="w-full sm:w-auto">
-                      <a
-                        href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(postHref)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    {p.details && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="w-full sm:w-auto"
+                        onClick={() => toggleProjectDetails(p.title)}
+                        aria-expanded={expandedProject === p.title}
                       >
-                        <Repeat2 className="mr-2 h-4 w-4" />Repost
-                      </a>
-                    </Button>
-                    {sharedPost === post.title && (
-                      <p className="text-xs text-muted-foreground sm:basis-full">
-                        Link ready to share—paste anywhere you like.
-                      </p>
+                        {expandedProject === p.title ? 'Hide details' : 'Show details'}
+                      </Button>
                     )}
                   </CardFooter>
                 </Card>
               </motion.div>
-            );
-          })}
-        </div>
-      </Section>
-
-      {/* Experience */}
-      <Section id="experience" title="Experience" subtitle="Education and highlights.">
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <h3 className="text-xl font-semibold">Highlights</h3>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground space-y-3">
-              <ul className="list-disc ml-5 space-y-2">
-                <li>Authored MSc dissertation evaluating bulk RNA‑seq batch correction (ComBat, Limma, RUVSeq, SVA) with rigorous metric scoring.</li>
-                <li>Completed BSc dissertation on Sertraline–drSERTaa molecular dynamics, quantifying binding stability and transport risk factors.</li>
-                <li>Designed RNA‑seq batch correction benchmarking across 10+ methods with rigorous metrics.</li>
-                <li>Built SwiftUI iOS/watchOS app with BLE for real‑time control of LED‑matrix visor hardware.</li>
-                <li>Productionised analysis with containers and CI, enabling reproducibility on HPC/Cloud.</li>
-              </ul>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <h3 className="text-xl font-semibold">Education</h3>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground space-y-3">
-              {experience.map((e) => (
-                <div key={e.role} className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="font-medium text-foreground">{e.role}</div>
-                    <div className="text-xs">{e.org}</div>
-                  </div>
-                  <div className="text-xs text-muted-foreground whitespace-nowrap">{e.time}</div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      </Section>
-
-      {/* Contact */}
-      <Section id="contact" title="Contact" subtitle="Open to bioinformatics roles, research collaborations, and custom builds.">
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <h3 className="text-xl font-semibold">Get in touch</h3>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground space-y-3">
-              <p>
-                Email me for opportunities, commissions, or speaking: <a className="underline" href="mailto:stef1949.sr@outlook.com">stef1949.sr@outlook.com</a>
-              </p>
-              <div className="flex flex-wrap gap-3 pt-2">
-                <Button asChild variant="outline">
-                  <a href="mailto:stef1949.sr@outlook.com">
-                    <Mail className="mr-2 h-4 w-4" />Email
-                  </a>
-                </Button>
-                <Button asChild variant="outline">
-                  <a href="https://github.com/stef1949" target="_blank" rel="noopener noreferrer">
-                    <Github className="mr-2 h-4 w-4" />GitHub
-                  </a>
-                </Button>
-                <Button asChild variant="outline">
-                  <a href="https://www.linkedin.com/in/stefan-ritchie/" target="_blank" rel="noopener noreferrer">
-                    <Linkedin className="mr-2 h-4 w-4" />LinkedIn
-                  </a>
-                </Button>
-                <Button asChild id="cv">
-                  <a href={cvDownloadHref} download>
-                    <FileDown className="mr-2 h-4 w-4" /> Download CV (PDF)
-                  </a>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <h3 className="text-xl font-semibold">Currently</h3>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
-              <p>Exploring PhD/industry bioinformatics roles in the UK/EU.</p>
-              <p>Iterating on HarmonizeNN & LumiFur v2 hardware.</p>
-              <p>
-                Commission slots: <span className="text-foreground">open</span>.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </Section>
-
-      {/* Footer */}
-      <footer className="border-t py-10">
-        <div className="mx-auto max-w-6xl px-6 sm:px-8 text-sm text-muted-foreground flex flex-col md:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} Stephie Ritchie. All rights reserved.</p>
-          <div className="flex items-center gap-4">
-            <a className="hover:opacity-80" href="https://github.com/stef1949" target="_blank" rel="noopener noreferrer">
-              GitHub
-            </a>
-            <a className="hover:opacity-80" href="#">
-              Privacy
-            </a>
-            <a className="hover:opacity-80" href="#">
-              Imprint
-            </a>
+            ))}
           </div>
-        </div>
-      </footer>
-    </div>
+        </Section>
+
+        {/* LinkedIn */}
+        <Section id="linkedin" title="LinkedIn" subtitle="Recent posts and threads from my professional feed.">
+          {linkedinMessage && (
+            <p className="mb-3 text-sm text-destructive/80 dark:text-destructive/90">
+              {linkedinMessage}
+            </p>
+          )}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {linkedinPosts.length === 0 && (
+              <Card className="sm:col-span-2 lg:col-span-3">
+                <CardContent className="py-6 text-sm text-muted-foreground">
+                  No LinkedIn posts are published yet—check back soon.
+                </CardContent>
+              </Card>
+            )}
+            {linkedinPosts.map((post) => {
+              const postHref = post.href || 'https://www.linkedin.com/in/stefan-ritchie/';
+              return (
+                <motion.div key={`${post.title}-${postHref}`} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+                  <Card className="h-full">
+                    <CardHeader className="space-y-2">
+                      <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+                        <Linkedin className="w-4 h-4" />
+                        <span>{post.date}</span>
+                      </div>
+                      <h3 className="text-lg font-semibold leading-snug">{post.title}</h3>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground min-h-[64px]">{post.blurb}</p>
+                    </CardContent>
+                    <CardFooter className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                      <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
+                        <a href={postHref} target="_blank" rel="noopener noreferrer">
+                          View on LinkedIn
+                        </a>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="w-full sm:w-auto"
+                        onClick={() => handleSharePost(post.title, postHref)}
+                      >
+                        <Share2 className="mr-2 h-4 w-4" />Share
+                      </Button>
+                      <Button asChild size="sm" variant="ghost" className="w-full sm:w-auto">
+                        <a
+                          href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(postHref)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Repeat2 className="mr-2 h-4 w-4" />Repost
+                        </a>
+                      </Button>
+                      {sharedPost === post.title && (
+                        <p className="text-xs text-muted-foreground sm:basis-full">
+                          Link ready to share—paste anywhere you like.
+                        </p>
+                      )}
+                    </CardFooter>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        </Section>
+
+        {/* Experience */}
+        <Section id="experience" title="Experience" subtitle="Education and highlights.">
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <h3 className="text-xl font-semibold">Highlights</h3>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground space-y-3">
+                <ul className="list-disc ml-5 space-y-2">
+                  <li>Authored MSc dissertation evaluating bulk RNA‑seq batch correction (ComBat, Limma, RUVSeq, SVA) with rigorous metric scoring.</li>
+                  <li>Completed BSc dissertation on Sertraline–drSERTaa molecular dynamics, quantifying binding stability and transport risk factors.</li>
+                  <li>Designed RNA‑seq batch correction benchmarking across 10+ methods with rigorous metrics.</li>
+                  <li>Built SwiftUI iOS/watchOS app with BLE for real‑time control of LED‑matrix visor hardware.</li>
+                  <li>Productionised analysis with containers and CI, enabling reproducibility on HPC/Cloud.</li>
+                </ul>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <h3 className="text-xl font-semibold">Education</h3>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground space-y-3">
+                {experience.map((e) => (
+                  <div key={e.role} className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="font-medium text-foreground">{e.role}</div>
+                      <div className="text-xs">{e.org}</div>
+                    </div>
+                    <div className="text-xs text-muted-foreground whitespace-nowrap">{e.time}</div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        </Section>
+
+        {/* Contact */}
+        <Section id="contact" title="Contact" subtitle="Open to bioinformatics roles, research collaborations, and custom builds.">
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <h3 className="text-xl font-semibold">Get in touch</h3>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground space-y-3">
+                <p>
+                  Email me for opportunities, commissions, or speaking: <a className="underline" href="mailto:stef1949.sr@outlook.com">stef1949.sr@outlook.com</a>
+                </p>
+                <div className="flex flex-wrap gap-3 pt-2">
+                  <Button asChild variant="outline">
+                    <a href="mailto:stef1949.sr@outlook.com">
+                      <Mail className="mr-2 h-4 w-4" />Email
+                    </a>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <a href="https://github.com/stef1949" target="_blank" rel="noopener noreferrer">
+                      <Github className="mr-2 h-4 w-4" />GitHub
+                    </a>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <a href="https://www.linkedin.com/in/stefan-ritchie/" target="_blank" rel="noopener noreferrer">
+                      <Linkedin className="mr-2 h-4 w-4" />LinkedIn
+                    </a>
+                  </Button>
+                  <Button asChild id="cv">
+                    <a href={cvDownloadHref} download>
+                      <FileDown className="mr-2 h-4 w-4" /> Download CV (PDF)
+                    </a>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <h3 className="text-xl font-semibold">Currently</h3>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm text-muted-foreground">
+                <p>Exploring PhD/industry bioinformatics roles in the UK/EU.</p>
+                <p>Iterating on HarmonizeNN & LumiFur v2 hardware.</p>
+                <p>
+                  Commission slots: <span className="text-foreground">open</span>.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </Section>
+
+        {/* Footer */}
+        <footer className="border-t py-10">
+          <div className="mx-auto max-w-6xl px-6 sm:px-8 text-sm text-muted-foreground flex flex-col md:flex-row items-center justify-between gap-4">
+            <p>© {new Date().getFullYear()} Stephie Ritchie. All rights reserved.</p>
+            <div className="flex items-center gap-4">
+              <a className="hover:opacity-80" href="https://github.com/stef1949" target="_blank" rel="noopener noreferrer">
+                GitHub
+              </a>
+              <a className="hover:opacity-80" href="#">
+                Privacy
+              </a>
+              <a className="hover:opacity-80" href="#">
+                Imprint
+              </a>
+            </div>
+          </div>
+        </footer>
+      </div>
+
 
       <AnimatePresence>
         {activeProject && activeProject.details && (
