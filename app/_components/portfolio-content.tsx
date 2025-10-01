@@ -620,8 +620,8 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
 
   return (
     <LayoutGroup>
+      
       <div className="static min-h-screen bg-background text-foreground selection:bg-foreground ">
-        <div ref={navMouseContainerRef} className="pointer-events-auto relative">
         {/* Background Spline scene (fixed right, behind content) */}
         <div className="fixed inset-0 z-0">
           <div className="absolute inset-0">
@@ -649,7 +649,7 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
         </div>
 
         {/* Nav */}
-        
+          <div ref={navMouseContainerRef} className="w-full h-screen bg-image">
           <LiquidGlass
             displacementScale={64}
             blurAmount={0.0}
@@ -773,7 +773,7 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
             </header>
 
           </LiquidGlass>
-        </div>
+
         {/* Hero */}
         <section className="relative mx-auto max-w-6xl px-6 sm:px-8 min-h-screen flex items-center pt-28 pb-24">
           <motion.div
@@ -1195,6 +1195,7 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </LayoutGroup>
   );
 }
