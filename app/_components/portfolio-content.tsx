@@ -620,7 +620,6 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
 
   return (
     <LayoutGroup>
-      
       <div className="static min-h-screen bg-background text-foreground selection:bg-foreground ">
         {/* Background Spline scene (fixed right, behind content) */}
         <div className="fixed inset-0 z-0">
@@ -651,16 +650,17 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
         {/* Nav */}
           <div ref={navMouseContainerRef} className="w-full h-screen bg-image">
           <LiquidGlass
-            displacementScale={64}
+            displacementScale={150}
             blurAmount={0.0}
             saturation={130}
             aberrationIntensity={2}
-            elasticity={0.5}
-            cornerRadius={100}
+            elasticity={0.3}
+            cornerRadius={10}
             padding="10px 10px"
             mode="standard"
+            overLight={false}
             mouseContainer={navMouseContainerRef}
-            style={{ zIndex: 1, position: 'fixed', top: '6%', left: '50%'}}
+            style={{ zIndex: 10, position: 'fixed', top: '10%', left: '50%'}}
             onClick={() => console.log('Button clicked!')}
 
           >
@@ -712,61 +712,64 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
-                    className="md:hidden absolute left-0 right-0 top-full mt-3 rounded-3xl border bg-background/95 shadow-xl"
+                    className="md:hidden fixed left-0 right-0 top-full mt-3 rounded-3xl border bg-background/95 shadow-xl"
                   >
-                    <nav className="px-4 py-4 space-y-4">
-                      <a
-                        className="block text-sm hover:opacity-80 py-2"
-                        href="#about"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        About
-                      </a>
-                      <a
-                        className="block text-sm hover:opacity-80 py-2"
-                        href="#projects"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Projects
-                      </a>
-                      <a
-                        className="block text-sm hover:opacity-80 py-2"
-                        href="#linkedin"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        LinkedIn
-                      </a>
-                      <a
-                        className="block text-sm hover:opacity-80 py-2"
-                        href="#experience"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Experience
-                      </a>
-                      <a
-                        className="block text-sm hover:opacity-80 py-2"
-                        href="#contact"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Contact
-                      </a>
-                      <div className="pt-4 space-y-3 border-t">
-                        <Button asChild size="sm" variant="outline" className="w-full">
-                          <a href="#contact" onClick={() => setMobileMenuOpen(false)}>Get in touch</a>
-                        </Button>
-                        <Button asChild size="sm" className="w-full">
-                          <a href={cvDownloadHref} download onClick={() => setMobileMenuOpen(false)}>
-                            <FileDown className="mr-2 h-4 w-4" />Download CV
-                          </a>
-                        </Button>
-                        <ThemeToggle
-                          size="sm"
-                          variant="outline"
-                          className="w-full justify-start"
-                          showLabel
-                        />
-                      </div>
-                    </nav>
+                      
+                          <nav className="px-4 py-4 space-y-4">
+                            <a
+                              className="block text-sm hover:opacity-80 py-2"
+                              href="#about"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              About
+                            </a>
+                            <a
+                              className="block text-sm hover:opacity-80 py-2"
+                              href="#projects"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              Projects
+                            </a>
+                            <a
+                              className="block text-sm hover:opacity-80 py-2"
+                              href="#linkedin"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              LinkedIn
+                            </a>
+                            <a
+                              className="block text-sm hover:opacity-80 py-2"
+                              href="#experience"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              Experience
+                            </a>
+                            <a
+                              className="block text-sm hover:opacity-80 py-2"
+                              href="#contact"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              Contact
+                            </a>
+                            <div className="pt-4 space-y-3 border-t">
+                              <Button asChild size="sm" variant="outline" className="w-full">
+                                <a href="#contact" onClick={() => setMobileMenuOpen(false)}>Get in touch</a>
+                              </Button>
+                              <Button asChild size="sm" className="w-full">
+                                <a href={cvDownloadHref} download onClick={() => setMobileMenuOpen(false)}>
+                                  <FileDown className="mr-2 h-4 w-4" />Download CV
+                                </a>
+                              </Button>
+                              <ThemeToggle
+                                size="sm"
+                                variant="outline"
+                                className="w-full justify-start"
+                                showLabel
+                              />
+                            </div>
+                          </nav>
+                     
+                    
                   </motion.div>
                 )}
               </AnimatePresence>
