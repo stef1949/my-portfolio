@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { Application } from "@splinetool/runtime";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Github, Linkedin, Mail, FileDown, Cpu, FlaskConical, Brain, Printer, Rocket, GraduationCap, BookOpen, Share2, Repeat2, Menu, X } from "lucide-react";
+import { Github, Linkedin, Mail, FileDown, Cpu, FlaskConical, Brain, Printer, Rocket, GraduationCap, BookOpen, Share2, Repeat2, Menu, X, Activity, Bot, Monitor } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import type { LinkedInPost } from "@/lib/linkedin-posts";
 
@@ -63,97 +63,114 @@ const loadSplineRuntime = (() => {
   };
 })();
 
+const emptySubscribe = () => () => {};
+const getClientReadySnapshot = () => true;
+const getServerNotReadySnapshot = () => false;
+
+let cachedWebGLSupport: boolean | null = null;
+const getWebGLSupportSnapshot = () => {
+  if (cachedWebGLSupport !== null) return cachedWebGLSupport;
+  if (typeof document === 'undefined') return false;
+
+  try {
+    const canvas = document.createElement('canvas');
+    const context =
+      canvas.getContext('webgl2') ??
+      canvas.getContext('webgl') ??
+      canvas.getContext('experimental-webgl');
+    cachedWebGLSupport = Boolean(context && 'getParameter' in context);
+  } catch {
+    cachedWebGLSupport = false;
+  }
+
+  return cachedWebGLSupport;
+};
+
 // ----
 // Data (feel free to edit these)
 // ----
 const projects = [
   {
-    title: "MSc Dissertation • RNA‑seq Batch Correction",
-    blurb:
-      "Comparative analysis of empirical Bayes and surrogate variable approaches across multi‑cohort bulk RNA‑seq datasets with integration metrics (kBET, iLISI, silhouette).",
-    tags: ["RNA‑seq", "Batch correction", "Empirical Bayes", "SVA"],
-    cta: { label: "Download dissertation (PDF)", href: withBasePath("/dissertation-batch-correction.pdf") },
-    icon: <GraduationCap className="w-5 h-5" />,
-    details: {
-      overview:
-        "Capstone benchmarking of empirical (ComBat/limma variants) versus surrogate-variable methods (SVA, RUV family) on simulated and TARGET bulk RNA-seq cohorts.",
-      bullets: [
-        "Built a Nextflow + R/Python workflow: raw counts → library-size normalisation → CPM/log branches plus count-native paths for ComBat-Seq/RUV",
-        "Benchmarked on Splatter-style simulations and TARGET/GEO neuroblastoma cohorts with known batch annotations",
-        "Quantified harmonisation and biology retention via PERMANOVA R², kBET rejection, Batch/Bio Silhouette, iLISI/cLISI, PCR R², and gene-level R²",
-        "Observed limma/ComBat drop PERMANOVA R² to ≈0.000–0.002 and kBET rejection to ≈1% while lifting Bio Silhouette above zero",
-        "Published a decision matrix outlining empirical-label use (limma/ComBat) versus latent-confounder strategies (SVA/SVA-Seq, RUV variants)",
-      ],
-      links: [
-        { label: "Read dissertation (PDF)", href: withBasePath("/dissertation-batch-correction.pdf") },
-        { label: "Analysis repo", href: "https://github.com/stef1949/RNA-Seq-Batch-Correction" },
-      ],
-    },
-  },
-  {
-    title: "BSc Dissertation • Sertraline/drSERTaa MD",
-    blurb:
-      "In silico molecular dynamics of Sertraline complexes with Danio rerio serotonin transporter (drSERTaa) using binding free energy and RMSD analysis to probe bioavailability risks.",
-    tags: ["Molecular dynamics", "Sertraline", "Danio rerio", "Free energy"],
-    cta: { label: "Download BSc dissertation (PDF)", href: withBasePath("/dissertation-bsc-sertraline.pdf") },
-    icon: <BookOpen className="w-5 h-5" />,
-    details: {
-      overview:
-        "Molecular dynamics dissertation quantifying Sertraline interactions with the zebrafish serotonin transporter to assess aquatic toxicology risk.",
-      bullets: [
-        "Ran 200 ns GROMACS trajectories with solvated complexes and progressive restraints",
-        "Measured RMSD/RMSF, hydrogen bonding, and MM/PBSA energies to characterise binding",
-        "Benchmark zebrafish transporter dynamics against human SERT references",
-        "Discussed implications for wastewater pharmacology and environmental impact",
-      ],
-      pipeline: [
-        "Generated homology model via SWISS-MODEL/AlphaFold inputs (70.83% identity, QMEANDisCo 0.74)",
-        "Docked Sertraline to drSERTaa active site and parametrised ligands with CHARMM-GUI",
-        "Executed energy minimisation → NVT/NPT equilibration → 200 ns production run in GROMACS",
-        "Post-processed trajectories with GROMACS/MDAnalysis scripts for energy and conformational metrics",
-      ],
-      evaluation: [
-        "Binding free energy: -11.56 kcal/mol (drSERTaa) vs -8.9 kcal/mol (human SERT)",
-        "Ligand RMSD 1.5–2.4 Å showing less stable pose in drSERTaa vs human complex",
-        "Tracked hydrogen bond persistence across 200 ns to contextualise affinity shifts",
-      ],
-      operations: [
-        "Toolchain: SWISS-MODEL, AlphaFold references, CHARMM36 force field, CHARMM-GUI, GROMACS 2023",
-        "Simulations executed on local GPU workstation with periodic checkpoints for restartability",
-        "Results packaged with plots/notebooks documenting environmental toxicology implications",
-      ],
-      links: [
-        { label: "Read dissertation (PDF)", href: withBasePath("/dissertation-bsc-sertraline.pdf") },
-      ],
-    },
-  },
-  {
     title: "LumiFur • ESP32‑S3 LED Visor",
     blurb:
-      "BLE‑controlled protogen visor system (ESP‑IDF + Hub75 DMA) with iOS/watchOS companion app in SwiftUI.",
-    tags: ["ESP32‑S3", "Hub75", "SwiftUI", "BLE", "ESP‑IDF"],
-    cta: { label: "View repo / site", href: "https://github.com/stef1949" },
+      "Real-time HUB75 LED mask firmware with sensor-driven animations, Bluetooth LE control, OTA updates, and a native SwiftUI companion app.",
+    tags: ["ESP32‑S3", "PlatformIO", "HUB75", "SwiftUI", "BLE", "OTA"],
+    cta: { label: "Controller repo", href: "https://github.com/stef1949/LumiFur_Controller" },
     icon: <Cpu className="w-5 h-5" />,
     details: {
       overview:
-        "Wearable LED visor platform featuring an ESP32-S3 controller, Hub75 DMA renderer, and SwiftUI BLE companion apps for live animation control.",
+        "Wearable LED visor platform split across an ESP32-S3 MatrixPortal controller, dual 64×32 HUB75 panels, and a SwiftUI app for live lighting control.",
       bullets: [
-        "20+ built-in animation presets ready to push to the visor",
-        "Powered by ESP32-S3 with Wi-Fi/Bluetooth radios and Qwiic/STEMMA expansion",
-        "BLE 5.3 support for cable-free control",
-        "SwiftUI companion app orchestrates colour, brightness, and playlists on iOS",
-        "DIY bill of materials keeps builds affordable (£35–£90 depending on microcontroller/LED choice)",
+        "20+ animated faces and effects including plasma, flame, starfields, scrolling text, and video playback",
+        "APDS9960, LIS3DH, and I2S microphone inputs drive adaptive brightness, proximity reactions, motion effects, and audio-reactive mouth animation",
+        "NimBLE GATT service supports expression switching, brightness control, feature toggles, telemetry, log retrieval, and BLE OTA updates",
+        "Power-aware runtime stores preferences in ESP32 NVS and supports wake-on-motion, sleep dimming, and ambient light scaling",
+        "80+ Unity tests, CodeQL workflow, Coveralls reporting, and a browser-based Web Bluetooth firmware updater",
       ],
       pipeline: [
-        "ESP32-S3 firmware (ESP-IDF) drives addressable LEDs and exposes LumiFur BLE services",
-        "iOS 14+ device discovers controller over BLE, pairs, and syncs animation sets",
-        "Webflow documentation guides hardware assembly, wiring, and flashing the controller",
-        "Spline demo and marketing site preview animation packs before deployment",
+        "MatrixPortal ESP32-S3 firmware renders effects through a DMA-buffered HUB75 pipeline",
+        "SwiftUI app discovers the controller over Bluetooth and manages fursuit lighting patterns",
+        "Firmware metadata, device ID, and build timestamps are advertised for companion-app integration",
+        "GitHub Pages hosts the Web Bluetooth updater for local firmware upload workflows",
+      ],
+      links: [
+        { label: "Controller firmware", href: "https://github.com/stef1949/LumiFur_Controller" },
+        { label: "SwiftUI app", href: "https://github.com/stef1949/LumiFur" },
+        { label: "Firmware updater", href: "https://stef1949.github.io/LumiFur_Controller/" },
+      ],
+    },
+  },
+  {
+    title: "RNAgen • RNA‑seq Simulation Benchmarking",
+    blurb:
+      "Reproducible R workflow that simulates bulk RNA‑seq from single-cell references, injects batch and biology effects, and benchmarks correction methods.",
+    tags: ["R", "RNA‑seq", "Simulation", "Batch correction", "Bioconductor"],
+    cta: { label: "View RNAgen", href: "https://github.com/stef1949/RNAgen" },
+    icon: <Brain className="w-5 h-5" />,
+    details: {
+      overview:
+        "A script-based analysis project for generating bulk-level assays, injecting controlled confounders, and comparing correction methods with reproducible plots and metrics.",
+      bullets: [
+        "Creates bulk-level SummarizedExperiment assays from single-cell reference profiles",
+        "Benchmarks limma, ComBat, ComBat-Seq, RUVg/RUVs, fastMNN, PCA regression, SVA, and SVA-Seq",
+        "Scores batch removal and biology retention with PERMANOVA R², kBET, silhouettes, iLISI/cLISI, PC regression, gene-level R², and DE TPR/FPR",
+        "Caches generated data and metric outputs so parameter-matched reruns are faster and repeatable",
+      ],
+      pipeline: [
+        "Generate synthetic bulk samples from empirical single-cell means and library sizes",
+        "Inject batch effects and known differential expression to preserve ground truth",
+        "Run correction methods through shared wrappers in functions.r",
+        "Export validation summaries, PCA views, boxplots, and method comparison tables",
+      ],
+      links: [
+        { label: "RNAgen repo", href: "https://github.com/stef1949/RNAgen" },
+      ],
+    },
+  },
+  {
+    title: "Nanopore Trace Viewer",
+    blurb:
+      "Browser-based prototype for exploring large multi-channel nanopore recordings with Zarr-backed storage, envelope pyramids, and revisioned APIs.",
+    tags: ["Python", "Zarr", "Signal data", "Canvas", "APIs"],
+    cta: { label: "View trace viewer", href: "https://github.com/stef1949/swe-tech-test" },
+    icon: <Activity className="w-5 h-5" />,
+    details: {
+      overview:
+        "A production-shaped read API and browser viewer for 48-channel, 2.5 kHz nanopore-style recordings stored as Zarr v3 arrays.",
+      bullets: [
+        "Generates a 1.5 hour mock recording with 13.5 million samples per channel for local stress testing",
+        "Serves metadata, overview, detail, and envelope-tile endpoints through a single-process Python HTTP service",
+        "Switches between raw samples and min/max envelopes based on viewport density and response-size budgets",
+        "Keeps stale trace data visible during pan and zoom while fresh requests load",
+        "Exposes livez, readyz, and Prometheus-style metrics endpoints for diagnostics",
       ],
       operations: [
-        "Supports ESP32-S3 by default with guidance for Teensy-class alternatives",
-        "Hardware kit requires microcontroller, addressable LEDs, 5V supply, and wearable diffusion",
-        "Companion app walkthrough covers first-time setup and BLE reconnect workflows",
+        "Revisioned URLs and ETags make overview and tile responses cache-friendly",
+        "Persisted .trace-pyramid.npz sidecars avoid rebuilding envelope pyramids on every startup",
+        "Loopback-only binding is the default unless remote access is explicitly enabled",
+      ],
+      links: [
+        { label: "Trace viewer repo", href: "https://github.com/stef1949/swe-tech-test" },
       ],
     },
   },
@@ -196,6 +213,107 @@ const projects = [
     },
   },
   {
+    title: "MSc Dissertation • RNA‑seq Batch Correction",
+    blurb:
+      "Comparative analysis of empirical Bayes and surrogate variable approaches across multi‑cohort bulk RNA‑seq datasets with integration metrics (kBET, iLISI, silhouette).",
+    tags: ["RNA‑seq", "Batch correction", "Empirical Bayes", "SVA"],
+    cta: { label: "Download dissertation (PDF)", href: withBasePath("/dissertation-batch-correction.pdf") },
+    icon: <GraduationCap className="w-5 h-5" />,
+    details: {
+      overview:
+        "Capstone benchmarking of empirical (ComBat/limma variants) versus surrogate-variable methods (SVA, RUV family) on simulated and TARGET bulk RNA-seq cohorts.",
+      bullets: [
+        "Built a Nextflow + R/Python workflow: raw counts → library-size normalisation → CPM/log branches plus count-native paths for ComBat-Seq/RUV",
+        "Benchmarked on Splatter-style simulations and TARGET/GEO neuroblastoma cohorts with known batch annotations",
+        "Quantified harmonisation and biology retention via PERMANOVA R², kBET rejection, Batch/Bio Silhouette, iLISI/cLISI, PCR R², and gene-level R²",
+        "Observed limma/ComBat drop PERMANOVA R² to ≈0.000–0.002 and kBET rejection to ≈1% while lifting Bio Silhouette above zero",
+        "Published a decision matrix outlining empirical-label use (limma/ComBat) versus latent-confounder strategies (SVA/SVA-Seq, RUV variants)",
+      ],
+      links: [
+        { label: "Read dissertation (PDF)", href: withBasePath("/dissertation-batch-correction.pdf") },
+        { label: "Analysis repo", href: "https://github.com/stef1949/RNA-Seq-Batch-Correction" },
+      ],
+    },
+  },
+  {
+    title: "Sunshine Virtual Monitor",
+    blurb:
+      "PowerShell automation that enables a dedicated virtual display for Sunshine streaming sessions, then restores the normal monitor layout afterwards.",
+    tags: ["PowerShell", "Windows", "Sunshine", "Moonlight", "Automation"],
+    cta: { label: "View Sunshine tool", href: "https://github.com/stef1949/sunshine-virtual-monitor" },
+    icon: <Monitor className="w-5 h-5" />,
+    details: {
+      overview:
+        "A Windows utility for streaming to a virtual display through Sunshine without disrupting the host's normal physical-monitor setup.",
+      bullets: [
+        "Enables a virtual display device when a Sunshine session starts and restores the previous layout when it ends",
+        "Uses MultiMonitorTool, WindowsDisplayManager, and optional vsync toggling for repeatable stream preparation",
+        "Documents recovery paths for broken layouts, including DisplaySwitch and device-disable commands",
+        "Includes Sunshine do/undo command examples for UI and config-file setup",
+      ],
+      operations: [
+        "Targets Windows 10/11 hosts with admin access and an installed virtual display driver",
+        "Keeps logs in the project folder so stream setup and teardown can be diagnosed after a session",
+      ],
+      links: [
+        { label: "Virtual monitor repo", href: "https://github.com/stef1949/sunshine-virtual-monitor" },
+        { label: "Secondary monitor repo", href: "https://github.com/stef1949/Sunshine-Secondary-Monitor" },
+      ],
+    },
+  },
+  {
+    title: "Embedly • Discord Media Bot",
+    blurb:
+      "Discord bot that rewrites Twitter/X links, downloads short-form media, preserves attribution, and gives users/admins controls through slash commands.",
+    tags: ["Python", "Discord.py", "yt-dlp", "FFmpeg", "Automation"],
+    cta: { label: "View Embedly", href: "https://github.com/stef1949/Embedly" },
+    icon: <Bot className="w-5 h-5" />,
+    details: {
+      overview:
+        "A Discord automation bot for cleaner media sharing across Twitter/X, TikTok, Instagram, and YouTube links.",
+      bullets: [
+        "Rewrites twitter.com and x.com links to vxtwitter.com for better previews",
+        "Downloads TikTok, Instagram, and YouTube media through yt-dlp and posts files directly when size limits allow",
+        "Supports webhook-based user emulation with fallback attribution when channel permissions are missing",
+        "Provides persistent delete/toggle buttons that survive bot restarts",
+        "Adds rate limiting, server settings, channel whitelists, user bans, admin controls, and detailed logging",
+      ],
+      operations: [
+        "Modular Python layout separates handlers, download services, transcoding, URL utilities, security helpers, and runtime state",
+        "Optional NVIDIA NVENC support accelerates FFmpeg video processing when the host supports it",
+      ],
+      links: [
+        { label: "Embedly repo", href: "https://github.com/stef1949/Embedly" },
+      ],
+    },
+  },
+  {
+    title: "Bambu2OBS • Printer Streaming Overlay",
+    blurb:
+      "Python/Flask overlay that connects Bambu Lab printers to OBS Studio for real-time print progress, metadata, and streaming visuals.",
+    tags: ["Python", "Flask", "MQTT", "OBS", "3D printing"],
+    cta: { label: "View Bambu2OBS", href: "https://github.com/stef1949/Bambu2OBS" },
+    icon: <Printer className="w-5 h-5" />,
+    details: {
+      overview:
+        "A live production utility for showing Bambu Lab printer progress inside OBS scenes, useful for streams and timelapses.",
+      bullets: [
+        "Reads local printer MQTT/FTPS status for live print progress",
+        "Uses Bambu cloud task metadata for profile names, cover images, and related job context",
+        "Serves dynamic overlay content through Flask for OBS browser sources",
+        "Ships with an OBS scene template and environment-based configuration",
+      ],
+      pipeline: [
+        "Configure printer credentials, serial number, local IP, access code, and cloud token in .env",
+        "Start the Flask server from src/bambu2obs.py",
+        "Point OBS browser sources at the local overlay URLs",
+      ],
+      links: [
+        { label: "Bambu2OBS repo", href: "https://github.com/stef1949/Bambu2OBS" },
+      ],
+    },
+  },
+  {
     title: "Electron Orbital Simulator",
     blurb:
       "GPU‑accelerated orbital visualizer producing probability density maps and isosurfaces.",
@@ -228,6 +346,43 @@ const projects = [
       ],
       links: [
         { label: "Simulator repo", href: "https://github.com/stef1949/Electron-Orbital-Simulator" },
+      ],
+    },
+  },
+  {
+    title: "BSc Dissertation • Sertraline/drSERTaa MD",
+    blurb:
+      "In silico molecular dynamics of Sertraline complexes with Danio rerio serotonin transporter (drSERTaa) using binding free energy and RMSD analysis to probe bioavailability risks.",
+    tags: ["Molecular dynamics", "Sertraline", "Danio rerio", "Free energy"],
+    cta: { label: "Download BSc dissertation (PDF)", href: withBasePath("/dissertation-bsc-sertraline.pdf") },
+    icon: <BookOpen className="w-5 h-5" />,
+    details: {
+      overview:
+        "Molecular dynamics dissertation quantifying Sertraline interactions with the zebrafish serotonin transporter to assess aquatic toxicology risk.",
+      bullets: [
+        "Ran 200 ns GROMACS trajectories with solvated complexes and progressive restraints",
+        "Measured RMSD/RMSF, hydrogen bonding, and MM/PBSA energies to characterise binding",
+        "Benchmark zebrafish transporter dynamics against human SERT references",
+        "Discussed implications for wastewater pharmacology and environmental impact",
+      ],
+      pipeline: [
+        "Generated homology model via SWISS-MODEL/AlphaFold inputs (70.83% identity, QMEANDisCo 0.74)",
+        "Docked Sertraline to drSERTaa active site and parametrised ligands with CHARMM-GUI",
+        "Executed energy minimisation → NVT/NPT equilibration → 200 ns production run in GROMACS",
+        "Post-processed trajectories with GROMACS/MDAnalysis scripts for energy and conformational metrics",
+      ],
+      evaluation: [
+        "Binding free energy: -11.56 kcal/mol (drSERTaa) vs -8.9 kcal/mol (human SERT)",
+        "Ligand RMSD 1.5–2.4 Å showing less stable pose in drSERTaa vs human complex",
+        "Tracked hydrogen bond persistence across 200 ns to contextualise affinity shifts",
+      ],
+      operations: [
+        "Toolchain: SWISS-MODEL, AlphaFold references, CHARMM36 force field, CHARMM-GUI, GROMACS 2023",
+        "Simulations executed on local GPU workstation with periodic checkpoints for restartability",
+        "Results packaged with plots/notebooks documenting environmental toxicology implications",
+      ],
+      links: [
+        { label: "Read dissertation (PDF)", href: withBasePath("/dissertation-bsc-sertraline.pdf") },
       ],
     },
   },
@@ -266,6 +421,27 @@ const projects = [
   },
 ];
 
+const recentFocus = [
+  {
+    title: "Bioinformatics benchmarking",
+    summary:
+      "Turning MSc batch-correction work into reusable simulation, correction, and evaluation tooling through RNAgen and HarmonizeNN.",
+    tags: ["RNA‑seq", "R", "PyTorch", "Metrics"],
+  },
+  {
+    title: "Wearable firmware",
+    summary:
+      "Hardening LumiFur into a tested ESP32-S3 firmware and SwiftUI app stack with BLE, OTA updates, sensors, and real-time LED effects.",
+    tags: ["ESP32‑S3", "BLE", "PlatformIO", "SwiftUI"],
+  },
+  {
+    title: "Practical automation",
+    summary:
+      "Building utilities around day-to-day workflows: virtual monitors for Sunshine, media handling in Discord, and Bambu printer overlays for OBS.",
+    tags: ["PowerShell", "Python", "OBS", "Discord"],
+  },
+];
+
 const experience = [
   { role: "MSc Genetic Manipulation & Molecular Biosciences", org: "University of Sussex", time: "2024–2025" },
   { role: "BSc Biomedical Science", org: "University of Brighton", time: "2019–2023" },
@@ -282,8 +458,8 @@ type PortfolioContentProps = {
 
 export default function PortfolioContent({ linkedinPosts, linkedinMessage = null }: PortfolioContentProps) {
   const ROTATE_TARGET_NAME = 'Globe'; // Change to your object name from Spline
-  const [mounted, setMounted] = useState(false);
-  const [shouldRenderSpline, setShouldRenderSpline] = useState(false);
+  const mounted = useSyncExternalStore(emptySubscribe, getClientReadySnapshot, getServerNotReadySnapshot);
+  const shouldRenderSpline = useSyncExternalStore(emptySubscribe, getWebGLSupportSnapshot, getServerNotReadySnapshot);
   const appRef = useRef<Application | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -350,30 +526,6 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
   }, []);
 
   const activeProject = expandedProject ? projects.find((p) => p.title === expandedProject) ?? null : null;
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const detectWebGL = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        const context =
-          canvas.getContext('webgl2') ??
-          canvas.getContext('webgl') ??
-          canvas.getContext('experimental-webgl');
-        return Boolean(context && 'getParameter' in context);
-      } catch {
-        return false;
-      }
-    };
-
-    const nextValue = detectWebGL();
-    setShouldRenderSpline((prev) => (prev === nextValue ? prev : nextValue));
-  }, []);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -657,6 +809,7 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
               {/* Desktop Navigation */}
               <nav className="hidden md:flex gap-6 text-sm">
                 <a className="hover:opacity-80" href="#about">About</a>
+                <a className="hover:opacity-80" href="#focus">Focus</a>
                 <a className="hover:opacity-80" href="#projects">Projects</a>
                 <a className="hover:opacity-80" href="#linkedin">LinkedIn</a>
                 <a className="hover:opacity-80" href="#experience">Experience</a>
@@ -703,6 +856,13 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       About
+                    </a>
+                    <a
+                      className="block text-sm hover:opacity-80 py-2"
+                      href="#focus"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Focus
                     </a>
                     <a
                       className="block text-sm hover:opacity-80 py-2"
@@ -764,21 +924,21 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
           className="max-w-3xl"
         >
           <h1 className="text-4xl md:text-7xl font-extrabold tracking-tight leading-tight">
-            Computational biologist & maker building <span className="bg-clip-text text-transparent bg-linear-to-r from-foreground to-foreground/60">beautifully engineered</span> tools.
+            Computational biologist & maker building <span className="bg-clip-text text-transparent bg-linear-to-r from-foreground to-foreground/60">practical research</span> tools.
           </h1>
           <p className="mt-4 text-xl md:text-lg text-muted-foreground">
-            MSc in Genetic Manipulation & Molecular Biosciences. I build bioinformatics pipelines, GPU‑accelerated simulations, and immersive hardware like the <em>LumiFur</em> visor system.
+            MSc in Genetic Manipulation & Molecular Biosciences. Recently I have been turning RNA‑seq batch-correction research into reusable tooling, building a nanopore trace viewer, and hardening the LumiFur ESP32‑S3/SwiftUI LED system.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
             <Badge>RNA‑seq</Badge>
             <Badge>Batch Correction</Badge>
+            <Badge>Zarr</Badge>
             <Badge>ESP32‑S3</Badge>
-            <Badge>C++</Badge>
+            <Badge>PlatformIO</Badge>
             <Badge>SwiftUI</Badge>
-            <Badge>CUDA/CuPy</Badge>
-            <Badge>Docker</Badge>
-            <Badge>Nextflow</Badge>
-            <Badge>HPC</Badge>
+            <Badge>PowerShell</Badge>
+            <Badge>Python</Badge>
+            <Badge>R</Badge>
           </div>
           <div className="mt-8 flex gap-3">
             <Button asChild>
@@ -792,7 +952,7 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
       </section>
 
       {/* About */}
-      <Section id="about" title="About" subtitle="Brighton‑based bioinformatician and 3D‑printing entrepreneur.">
+      <Section id="about" title="About" subtitle="Brighton‑based bioinformatician, software builder, and 3D‑printing entrepreneur.">
         <div className="grid md:grid-cols-3 gap-6 items-start">
           <Card className="md:col-span-2">
             <CardHeader>
@@ -800,16 +960,16 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
             </CardHeader>
             <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
               <p>
-                I design robust, reproducible analysis tooling for genomics (RNA‑seq batch correction, QC dashboards, containerised workflows) and craft high‑performance visual interfaces.
+                I design reproducible analysis tooling for genomics, especially RNA‑seq batch correction, simulation workflows, QC metrics, and interfaces for large biological signal data.
               </p>
               <p>
-                On the hardware side, I prototype embedded systems for wearables and interactive displays, shipping turnkey kits and custom parts via my company, <strong>Richies 3D Ltd</strong>.
+                Recent work includes RNAgen for synthetic bulk RNA‑seq benchmarking, HarmonizeNN for adversarial batch correction, and a Zarr-backed nanopore trace viewer with revisioned APIs and cacheable envelope tiles.
               </p>
               <p>
-                My MSc dissertation, <em>Evaluating Bulk RNASeq Batch Correction Processes</em>, benchmarks ComBat, Limma, RUVSeq, SVA, and neural approaches to deliver best‑practice guidance for harmonising clinical cohorts.
+                On the hardware side, I prototype embedded systems for wearables and interactive displays. LumiFur now spans ESP32‑S3 firmware, BLE/OTA workflows, sensor-driven animations, and a native SwiftUI app.
               </p>
               <p>
-                Earlier, my BSc dissertation carried out molecular dynamics on Sertraline binding to the zebrafish serotonin transporter, coupling binding free energy and RMSD metrics to highlight translational toxicology considerations.
+                I also build practical automation around making and streaming: Sunshine virtual monitor workflows, Bambu printer overlays for OBS, Discord media tooling, and custom parts via <strong>Richies 3D Ltd</strong>.
               </p>
             </CardContent>
           </Card>
@@ -822,12 +982,17 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
                 "Python",
                 "R",
                 "PyTorch",
+                "Zarr",
+                "Flask",
                 "Nextflow",
                 "Docker",
                 "SwiftUI",
-                "ESP‑IDF",
+                "PlatformIO",
                 "C/C++",
                 "Hub75 DMA",
+                "PowerShell",
+                "Discord.py",
+                "MQTT",
                 "GitHub Actions",
               ].map((t) => (
                 <Badge key={t}>{t}</Badge>
@@ -837,8 +1002,29 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
         </div>
       </Section>
 
+      {/* Recent Focus */}
+      <Section id="focus" title="Recent focus" subtitle="What I have been building across bioinformatics, embedded hardware, and workflow automation.">
+        <div className="grid md:grid-cols-3 gap-6">
+          {recentFocus.map((item) => (
+            <Card key={item.title} className="h-full">
+              <CardHeader>
+                <h3 className="text-xl font-semibold">{item.title}</h3>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm leading-relaxed text-muted-foreground">{item.summary}</p>
+                <div className="flex flex-wrap gap-2">
+                  {item.tags.map((tag) => (
+                    <Badge key={tag}>{tag}</Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </Section>
+
       {/* Projects */}
-      <Section id="projects" title="Projects" subtitle="Selected work spanning software, research, and hardware.">
+      <Section id="projects" title="Projects" subtitle="Recent and selected work spanning software, research, hardware, and automation.">
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((p) => (
             <motion.div
@@ -964,11 +1150,11 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground space-y-3">
               <ul className="list-disc ml-5 space-y-2">
-                <li>Authored MSc dissertation evaluating bulk RNA‑seq batch correction (ComBat, Limma, RUVSeq, SVA) with rigorous metric scoring.</li>
-                <li>Completed BSc dissertation on Sertraline–drSERTaa molecular dynamics, quantifying binding stability and transport risk factors.</li>
-                <li>Designed RNA‑seq batch correction benchmarking across 10+ methods with rigorous metrics.</li>
-                <li>Built SwiftUI iOS/watchOS app with BLE for real‑time control of LED‑matrix visor hardware.</li>
-                <li>Productionised analysis with containers and CI, enabling reproducibility on HPC/Cloud.</li>
+                <li>Authored MSc dissertation evaluating bulk RNA‑seq batch correction across ComBat, limma, RUVSeq, SVA, and neural approaches.</li>
+                <li>Built RNAgen/SimBu workflows to simulate bulk RNA‑seq, inject known confounders, and score correction methods reproducibly.</li>
+                <li>Prototyped a Zarr-backed nanopore trace viewer with revisioned APIs, cache validators, envelope pyramids, and browser rendering.</li>
+                <li>Developed LumiFur ESP32‑S3 firmware with BLE control, OTA updates, sensor reactions, Unity tests, and a SwiftUI companion app.</li>
+                <li>Shipped practical automation projects for Sunshine virtual displays, Discord media handling, and Bambu-to-OBS print overlays.</li>
               </ul>
             </CardContent>
           </Card>
@@ -992,7 +1178,7 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
       </Section>
 
       {/* Contact */}
-      <Section id="contact" title="Contact" subtitle="Open to bioinformatics roles, research collaborations, and custom builds.">
+      <Section id="contact" title="Contact" subtitle="Open to bioinformatics/software roles, research collaborations, and custom builds.">
         <div className="grid md:grid-cols-3 gap-6">
           <Card className="md:col-span-2">
             <CardHeader>
@@ -1031,8 +1217,9 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
               <h3 className="text-xl font-semibold">Currently</h3>
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-muted-foreground">
-              <p>Exploring PhD/industry bioinformatics roles in the UK/EU.</p>
-              <p>Iterating on HarmonizeNN & LumiFur v2 hardware.</p>
+              <p>Exploring PhD/industry bioinformatics and scientific software roles in the UK/EU.</p>
+              <p>Extending RNAgen, HarmonizeNN, and trace-viewer work into reusable research tooling.</p>
+              <p>Iterating on LumiFur firmware, SwiftUI control, and maker/streaming utilities.</p>
               <p>
                 Commission slots: <span className="text-foreground">open</span>.
               </p>

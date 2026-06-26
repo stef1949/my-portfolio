@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
 import { Moon, Sun } from "lucide-react";
-import { useEffect, useMemo, useState, type ComponentProps } from "react";
+import { useMemo, useSyncExternalStore, type ComponentProps } from "react";
 
 type ThemeToggleProps = {
   className?: string;
@@ -12,6 +12,10 @@ type ThemeToggleProps = {
   showLabel?: boolean;
 };
 
+const emptySubscribe = () => () => {};
+const getClientReadySnapshot = () => true;
+const getServerNotReadySnapshot = () => false;
+
 export function ThemeToggle({
   className,
   size = "icon",
@@ -19,11 +23,7 @@ export function ThemeToggle({
   showLabel = false,
 }: ThemeToggleProps) {
   const { theme, toggleTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(emptySubscribe, getClientReadySnapshot, getServerNotReadySnapshot);
 
   const label = useMemo(() => {
     if (!mounted) return "Toggle theme";

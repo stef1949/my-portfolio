@@ -2,7 +2,7 @@ export const siteConfig = {
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://stef1949.github.io/my-portfolio/",
   title: "Steph Ritchie • Computational Biologist & Maker",
   description:
-    "Bioinformatics engineer delivering neural network batch correction, GPU visualisations, and wearable microcontrollers.",
+    "Bioinformatics and scientific software portfolio covering RNA-seq benchmarking, nanopore trace tooling, ESP32 wearables, and maker automation.",
   siteName: "Steph Ritchie Portfolio",
   authorName: "Stephie Ritchie",
   authorTwitter: "@richies3d",
