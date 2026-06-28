@@ -932,6 +932,10 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
           <div className="mt-6 flex flex-wrap gap-2">
             <Badge>C++</Badge>
             <Badge>CUDA</Badge>
+            <Badge>DEG</Badge>
+            <Badge>CFD</Badge>
+            <Badge>Dimensional Analysis</Badge>
+            <Badge>Molecular Dynamics</Badge>
             <Badge>RNA‑seq</Badge>
             <Badge>Batch Correction</Badge>
             <Badge>Zarr</Badge>
