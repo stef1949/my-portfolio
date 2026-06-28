@@ -930,6 +930,8 @@ export default function PortfolioContent({ linkedinPosts, linkedinMessage = null
             MSc in Genetic Manipulation & Molecular Biosciences. Recently I have been turning RNA‑seq batch-correction research into reusable tooling, building a nanopore trace viewer, and hardening the LumiFur ESP32‑S3/SwiftUI LED system.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
+            <Badge>C++</Badge>
+            <Badge>CUDA</Badge>
             <Badge>RNA‑seq</Badge>
             <Badge>Batch Correction</Badge>
             <Badge>Zarr</Badge>
