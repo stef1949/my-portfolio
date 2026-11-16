@@ -152,7 +152,7 @@ const projects = [
     blurb:
       "Browser-based prototype for exploring large multi-channel nanopore recordings with Zarr-backed storage, envelope pyramids, and revisioned APIs.",
     tags: ["Python", "Zarr", "Signal data", "Canvas", "APIs"],
-    cta: { label: "View trace viewer", href: "https://github.com/stef1949/swe-tech-test" },
+    cta: { label: "View trace viewer", href: "https://github.com/stef1949/nano-explorer" },
     icon: <Activity className="w-5 h-5" />,
     details: {
       overview:
@@ -170,7 +170,7 @@ const projects = [
         "Loopback-only binding is the default unless remote access is explicitly enabled",
       ],
       links: [
-        { label: "Trace viewer repo", href: "https://github.com/stef1949/swe-tech-test" },
+        { label: "Trace viewer repo", href: "https://github.com/stef1949/nano-explorer" },
       ],
     },
   },
